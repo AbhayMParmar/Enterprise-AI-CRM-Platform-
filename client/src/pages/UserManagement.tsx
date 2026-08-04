@@ -1,0 +1,520 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Users,
+  UserPlus,
+  Shield,
+  Search,
+  Filter,
+  RefreshCw,
+  MoreVertical,
+  KeyRound,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  ChevronDown,
+} from 'lucide-react';
+import api from '../services/api';
+import useAuthStore from '../store/authStore';
+import { Card, CardHeader, CardBody } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { useToast } from '../components/ui/Toast';
+
+interface UserRecord {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'SuperAdmin' | 'Admin' | 'SalesManager' | 'SalesRep';
+  avatar?: string;
+  phone?: string;
+  company?: string;
+  jobTitle?: string;
+  isVerified: boolean;
+  lastLogin?: string;
+  createdAt: string;
+}
+
+export const UserManagement = () => {
+  const { user: currentUser } = useAuthStore();
+  const { success, error } = useToast();
+
+  const [users, setUsers] = useState<UserRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>('ALL');
+
+  // Selected User IDs for Bulk Actions
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+
+  // Modal States
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [targetUser, setTargetUser] = useState<UserRecord | null>(null);
+
+  // New User Form State
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState<'SuperAdmin' | 'Admin' | 'SalesManager' | 'SalesRep'>('SalesRep');
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Reset Password State
+  const [resetPasswordText, setResetPasswordText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const res = await api.get('/users', {
+        params: {
+          role: selectedRoleFilter !== 'ALL' ? selectedRoleFilter : undefined,
+          search: searchQuery.trim() || undefined,
+        },
+      });
+      setUsers(res.data.users || []);
+    } catch (err: any) {
+      error('Failed to fetch workspace users.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [selectedRoleFilter]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchUsers();
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+    try {
+      await api.post('/users', {
+        name: newName,
+        email: newEmail,
+        password: newPassword,
+        role: newRole,
+      });
+      success(`User account created successfully with role ${newRole}`);
+      setIsCreateModalOpen(false);
+      setNewName('');
+      setNewEmail('');
+      setNewPassword('');
+      setNewRole('SalesRep');
+      fetchUsers();
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to create user account');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, targetRole: string) => {
+    try {
+      await api.put(`/users/${userId}/role`, { role: targetRole });
+      success(`User role updated to ${targetRole}`);
+      // Update local state instead of refreshing entire table
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user._id === userId ? { ...user, role: targetRole as any } : user
+        )
+      );
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to update user role');
+    }
+  };
+
+  const handleStatusToggle = async (userRec: UserRecord) => {
+    try {
+      await api.put(`/users/${userRec._id}/status`, { isVerified: !userRec.isVerified });
+      success(`Account ${userRec.isVerified ? 'deactivated' : 'activated'} successfully`);
+      // Update local state instead of refreshing entire table
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user._id === userRec._id ? { ...user, isVerified: !userRec.isVerified } : user
+        )
+      );
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to update user status');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!targetUser) return;
+    setIsResetting(true);
+    try {
+      await api.post(`/users/${targetUser._id}/reset-password`, { newPassword: resetPasswordText });
+      success(`Password reset successfully for ${targetUser.name}`);
+      setIsResetModalOpen(false);
+      setTargetUser(null);
+      setResetPasswordText('');
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to reset password');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleDeleteUser = async (userRec: UserRecord) => {
+    if (!window.confirm(`Are you sure you want to delete user ${userRec.name}? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.delete(`/users/${userRec._id}`);
+      success('User account deleted');
+      // Update local state instead of refreshing entire table
+      setUsers(prevUsers => prevUsers.filter(user => user._id !== userRec._id));
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to delete user');
+    }
+  };
+
+  const handleBulkAction = async (action: 'delete' | 'changeRole' | 'toggleStatus', targetRole?: string) => {
+    if (selectedUserIds.length === 0) return;
+    if (action === 'delete' && !window.confirm(`Are you sure you want to delete ${selectedUserIds.length} users?`)) {
+      return;
+    }
+    try {
+      await api.post('/users/bulk', { userIds: selectedUserIds, action, targetRole });
+      success(`Bulk operation performed on ${selectedUserIds.length} users`);
+      // Update local state instead of refreshing entire table
+      if (action === 'delete') {
+        setUsers(prevUsers => prevUsers.filter(user => !selectedUserIds.includes(user._id)));
+      } else if (action === 'changeRole' && targetRole) {
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            selectedUserIds.includes(user._id) ? { ...user, role: targetRole as any } : user
+          )
+        );
+      } else if (action === 'toggleStatus') {
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            selectedUserIds.includes(user._id) ? { ...user, isVerified: !user.isVerified } : user
+          )
+        );
+      }
+      setSelectedUserIds([]);
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Bulk operation failed');
+    }
+  };
+
+  const getRoleBadgeStyle = (role: string) => {
+    switch (role) {
+      case 'SuperAdmin':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'Admin':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'SalesManager':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-10">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-brand-primary via-indigo-600 to-blue-700 text-white rounded-2xl p-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
+              <Shield className="w-6 h-6 text-white" />
+            </span>
+            <h1 className="text-xl font-bold">User Management & Enterprise RBAC</h1>
+          </div>
+          <p className="text-xs text-blue-100 mt-1 max-w-xl">
+            Provision users, assign granular roles (SuperAdmin, Admin, SalesManager, SalesRep), manage security permissions, and reset user credentials.
+          </p>
+        </div>
+
+        <Button variant="outline" size="sm" onClick={() => setIsCreateModalOpen(true)} className="bg-white text-brand-primary border-transparent hover:bg-slate-100 font-semibold shadow-xs">
+          <UserPlus className="w-4 h-4 mr-2" />
+          Provision New User
+        </Button>
+      </div>
+
+      {/* Filter & Search Bar */}
+      <Card>
+        <CardBody className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Role Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+            {['ALL', 'SuperAdmin', 'Admin', 'SalesManager', 'SalesRep'].map((role) => (
+              <button
+                key={role}
+                onClick={() => setSelectedRoleFilter(role)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                  selectedRoleFilter === role
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {role}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Form */}
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-brand-border rounded-xl text-xs outline-none focus:border-brand-primary focus:bg-white transition-all"
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">
+              Search
+            </Button>
+          </form>
+        </CardBody>
+      </Card>
+
+      {/* Bulk Action Bar (if users selected and SuperAdmin) */}
+      {selectedUserIds.length > 0 && currentUser?.role === 'SuperAdmin' && (
+        <div className="bg-slate-900 text-white px-4 py-3 rounded-xl flex items-center justify-between shadow-lg text-xs">
+          <span>{selectedUserIds.length} user(s) selected for bulk action</span>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="danger" onClick={() => handleBulkAction('delete')}>
+              <Trash2 className="w-3.5 h-3.5 mr-1" />
+              Bulk Delete
+            </Button>
+            <Button size="sm" variant="outline" className="bg-white/10 text-white border-white/20" onClick={() => setSelectedUserIds([])}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* User Records Table */}
+      <Card>
+        <CardHeader className="flex items-center justify-between py-3">
+          <h3 className="font-bold text-xs text-brand-textPrimary flex items-center gap-2">
+            <Users className="w-4 h-4 text-brand-primary" />
+            Workspace Accounts ({users.length})
+          </h3>
+          <Button variant="outline" size="sm" onClick={fetchUsers}>
+            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+            Refresh
+          </Button>
+        </CardHeader>
+
+        <CardBody className="p-0 overflow-x-auto">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-slate-400 italic flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-brand-primary" />
+              Loading user registry...
+            </div>
+          ) : users.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-400 italic">No users found matching current filters.</div>
+          ) : (
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-brand-border text-slate-500 font-semibold">
+                  {currentUser?.role === 'SuperAdmin' && (
+                    <th className="p-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedUserIds(users.map((u) => u._id));
+                          } else {
+                            setSelectedUserIds([]);
+                          }
+                        }}
+                        checked={selectedUserIds.length === users.length && users.length > 0}
+                        className="rounded text-brand-primary"
+                      />
+                    </th>
+                  )}
+                  <th className="p-3">User</th>
+                  <th className="p-3">Role</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Joined Date</th>
+                  <th className="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {users.map((u) => {
+                  const avatarSrc =
+                    u.avatar ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=2563eb&color=fff&size=80`;
+
+                  const isSuperAdminUser = u.role === 'SuperAdmin';
+                  const canModifyUser =
+                    currentUser?.role === 'SuperAdmin' || (currentUser?.role === 'Admin' && !isSuperAdminUser);
+
+                  return (
+                    <tr key={u._id} className="hover:bg-slate-50/80 transition-colors">
+                      {currentUser?.role === 'SuperAdmin' && (
+                        <td className="p-3 text-center">
+                          <input
+                            type="checkbox"
+                            disabled={isSuperAdminUser}
+                            checked={selectedUserIds.includes(u._id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedUserIds((prev) => [...prev, u._id]);
+                              } else {
+                                setSelectedUserIds((prev) => prev.filter((id) => id !== u._id));
+                              }
+                            }}
+                            className="rounded text-brand-primary"
+                          />
+                        </td>
+                      )}
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <img src={avatarSrc} alt={u.name} className="w-8 h-8 rounded-full border border-slate-200 object-cover" />
+                          <div>
+                            <p className="font-bold text-slate-800">{u.name}</p>
+                            <p className="text-slate-400 text-[11px]">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        {canModifyUser && !isSuperAdminUser ? (
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u._id, e.target.value)}
+                            className={`px-2 py-1 rounded-full text-[10px] font-bold border outline-none cursor-pointer ${getRoleBadgeStyle(
+                              u.role
+                            )}`}
+                          >
+                            {/* SuperAdmin cannot assign SuperAdmin role to others */}
+                            {/* Only SuperAdmin can assign Admin role */}
+                            {currentUser?.role === 'SuperAdmin' && <option value="Admin">Admin</option>}
+                            <option value="SalesManager">SalesManager</option>
+                            <option value="SalesRep">SalesRep</option>
+                          </select>
+                        ) : (
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${getRoleBadgeStyle(u.role)}`}>
+                            {u.role}
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-3">
+                        <button
+                          disabled={!canModifyUser || isSuperAdminUser}
+                          onClick={() => handleStatusToggle(u)}
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                            u.isVerified
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          {u.isVerified ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-rose-600" />}
+                          <span>{u.isVerified ? 'Active' : 'Suspended'}</span>
+                        </button>
+                      </td>
+                      <td className="p-3 text-slate-500 font-mono text-[11px]">
+                        {new Date(u.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {canModifyUser && (
+                            <button
+                              onClick={() => {
+                                setTargetUser(u);
+                                setIsResetModalOpen(true);
+                              }}
+                              title="Reset Password"
+                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-brand-primary transition-all"
+                            >
+                              <KeyRound className="w-4 h-4" />
+                            </button>
+                          )}
+                          {canModifyUser && !isSuperAdminUser && (
+                            <button
+                              onClick={() => handleDeleteUser(u)}
+                              title="Delete Account"
+                              className="p-1.5 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Provision User Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-brand-border flex flex-col gap-4">
+            <h3 className="font-bold text-base text-brand-textPrimary flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-brand-primary" />
+              Provision New Workspace Account
+            </h3>
+            <form onSubmit={handleCreateUser} className="flex flex-col gap-3 text-xs">
+              <Input label="Full Name" placeholder="e.g. Alex Mercer" value={newName} onChange={(e) => setNewName(e.target.value)} required />
+              <Input label="Email Address" type="email" placeholder="alex@company.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+              <Input label="Initial Password" type="password" placeholder="At least 6 characters" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+              <div className="flex flex-col gap-1.5">
+                <label className="font-semibold text-brand-textPrimary select-none">Enterprise Role</label>
+                <select
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value as any)}
+                  className="w-full px-3 py-2.5 text-xs sm:text-sm bg-white border border-brand-border rounded-lg outline-none text-brand-textPrimary focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/40 transition-all appearance-none cursor-pointer"
+                >
+                  {/* SuperAdmin cannot create another SuperAdmin */}
+                  {currentUser?.role === 'SuperAdmin' && <option value="Admin">Admin (Workspace Admin)</option>}
+                  <option value="SalesManager">SalesManager (Team Lead)</option>
+                  <option value="SalesRep">SalesRep (Sales Representative)</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" isLoading={isCreating}>
+                  Provision Account
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {isResetModalOpen && targetUser && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-brand-border flex flex-col gap-4">
+            <h3 className="font-bold text-base text-brand-textPrimary flex items-center gap-2">
+              <KeyRound className="w-5 h-5 text-brand-primary" />
+              Reset Password for {targetUser.name}
+            </h3>
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-3 text-xs">
+              <Input label="New Password" type="password" placeholder="Enter new password" value={resetPasswordText} onChange={(e) => setResetPasswordText(e.target.value)} required />
+              <div className="flex justify-end gap-2 mt-3">
+                <Button type="button" variant="outline" onClick={() => setIsResetModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" isLoading={isResetting}>
+                  Confirm Reset
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default UserManagement;
