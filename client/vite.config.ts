@@ -15,4 +15,21 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    // Prevent build failure due to chunk size warnings
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        // Code-split large vendor libs for better performance on Vercel CDN
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'chart-vendor': ['recharts'],
+          'motion-vendor': ['framer-motion'],
+        },
+      },
+    },
+  },
 });
+

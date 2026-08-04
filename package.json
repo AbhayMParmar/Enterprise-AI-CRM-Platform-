@@ -6,9 +6,12 @@
     "dev": "concurrently --raw \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "vercel-build": "cd client && npm install && npm run build",
+    "start": "cd server && npm start"
   },
   "devDependencies": {
+    "@vercel/node": "^3.2.29",
     "concurrently": "^8.2.2"
   },
   "keywords": [
