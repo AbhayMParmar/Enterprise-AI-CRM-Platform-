@@ -27,7 +27,14 @@ class EmailService {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
-    if (host && user && pass) {
+    const isRealCredentials =
+      host &&
+      user &&
+      pass &&
+      !user.includes('your_email') &&
+      !pass.includes('your_app_password');
+
+    if (isRealCredentials) {
       try {
         this.transporter = nodemailer.createTransport({
           host,

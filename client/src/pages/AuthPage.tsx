@@ -1748,7 +1748,9 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
   const from = (location.state as any)?.from?.pathname || '/dashboard';
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your_google_client_id.apps.googleusercontent.com';
-  const isGoogleConfigured = clientId && !clientId.includes('your_google_client_id');
+  const isGoogleGsiEnabled = import.meta.env.VITE_ENABLE_GOOGLE_GSI === 'true';
+  // Keep isGoogleConfigured as alias used in props to sub-components
+  const isGoogleConfigured = isGoogleGsiEnabled;
 
   const handleGoogleLoginSuccess = async (credential: string) => {
     try {
@@ -1764,7 +1766,7 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
   };
 
   useEffect(() => {
-    if (!isGoogleConfigured) return;
+    if (!isGoogleGsiEnabled) return;
 
     const initGoogle = () => {
       const google = (window as any).google;
@@ -1795,7 +1797,6 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
           });
         };
         
-        // Render buttons after a small timeout to make sure elements are in DOM
         setTimeout(renderBtns, 100);
         renderBtns();
       }
@@ -1812,7 +1813,7 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
     } else {
       initGoogle();
     }
-  }, [isGoogleConfigured, mode]);
+  }, [isGoogleGsiEnabled, mode]);
 
   const isLogin = mode === 'login';
 
