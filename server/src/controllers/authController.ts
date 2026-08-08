@@ -8,6 +8,7 @@ import { OAuth2Client } from 'google-auth-library';
 import emailService from '../services/emailService';
 import { OTPService } from '../services/otpService';
 import bcrypt from 'bcryptjs';
+import { connectDB } from '../config/db';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -56,14 +57,7 @@ const resetPasswordSchema = z.object({
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     // Ensure DB connection is active
-    if (mongoose.connection.readyState !== 1) {
-      try {
-        const { connectDB } = await import('../config/db');
-        await connectDB();
-      } catch (dbErr) {
-        console.warn('Database connection attempt during registration failed (using fail-safe mode):', dbErr);
-      }
-    }
+    await connectDB();
 
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
@@ -84,7 +78,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       // Check if user already exists
       const existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) {
-        res.status(400).json({ success: false, message: 'User with this email already exists' });
+        res.status(400).json({ success: false, message: 'An account with this email already exists.' });
         return;
       }
 
@@ -174,15 +168,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    // ── Ensure DB connection is active (critical for Vercel cold starts) ──────
-    if (mongoose.connection.readyState !== 1) {
-      try {
-        const { connectDB } = await import('../config/db');
-        await connectDB();
-      } catch (dbErr) {
-        console.warn('DB reconnection attempt during login failed:', dbErr);
-      }
-    }
+    // Ensure DB connection is active
+    await connectDB();
 
     const validation = loginSchema.safeParse(req.body);
     if (!validation.success) {
@@ -197,14 +184,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = validation.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Guard: if still not connected, return a meaningful error (not 500)
-    if (mongoose.connection.readyState !== 1) {
-      res.status(503).json({ success: false, message: 'Database temporarily unavailable. Please try again in a moment.' });
-      return;
+    let user: any = null;
+
+    if (mongoose.connection.readyState === 1) {
+      user = await User.findOne({ email: normalizedEmail }).select('+password');
     }
 
-    // Find user (explicitly request password field)
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
       res.status(400).json({ success: false, message: 'Invalid email or password' });
       return;
@@ -247,18 +232,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error('Login error:', error?.message || error);
-
-    // Mongoose buffer timeout — DB was not connected in time
-    if (error?.name === 'MongooseError' || error?.message?.includes('buffering timed out') || error?.message?.includes('ECONNREFUSED')) {
-      res.status(503).json({ success: false, message: 'Database temporarily unavailable. Please try again in a moment.' });
-      return;
-    }
-    // Duplicate key or validation — should not reach login but guard anyway
-    if (error.code === 11000) {
-      res.status(400).json({ success: false, message: 'Account conflict. Please contact support.' });
-      return;
-    }
-    res.status(500).json({ success: false, message: 'Login failed. Please try again.', error: error.message });
+    res.status(400).json({ success: false, message: 'Invalid email or password.' });
   }
 };
 
