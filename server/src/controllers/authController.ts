@@ -15,8 +15,8 @@ const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password is too long')
+    .min(6, 'Password must be at least 6 characters')
+    .max(8, 'Password cannot exceed 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')
@@ -26,7 +26,7 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  password: z.string().min(1, 'Password is required').max(8, 'Password cannot exceed 8 characters'),
 });
 
 
@@ -44,7 +44,8 @@ const resetPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
   otp: z.string().regex(/^\d{6}$/, 'OTP must be 6 digits'),
   newPassword: z.string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(6, 'Password must be at least 6 characters')
+    .max(8, 'Password cannot exceed 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')
@@ -63,18 +64,19 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 
     const { name, email, password, role } = validation.data;
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-      res.status(400).json({ message: 'User with this email already exists' });
+      res.status(400).json({ success: false, message: 'User with this email already exists' });
       return;
     }
 
     // Create user
     const newUser = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password,
       role: role || 'SalesRep',
       isVerified: false,
@@ -122,9 +124,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     const { email, password } = validation.data;
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Find user (explicitly request password field)
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) {
       res.status(400).json({ message: 'Invalid email or password' });
       return;

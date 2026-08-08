@@ -44,7 +44,8 @@ const validateField = (name: string, value: string, isSignup = false): string | 
 
   if (name === 'password') {
     if (!value) return 'Password is required';
-    if (value.length < 8) return 'Password must be at least 8 characters';
+    if (value.length < 6) return 'Password must be at least 6 characters';
+    if (value.length > 8) return 'Password cannot exceed 8 characters';
     if (!/[A-Z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
       return 'Must include uppercase, digit & symbol';
     }
@@ -480,7 +481,7 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
                 touched={touched.email}
               />
               <Field
-                label="Password"
+                label="Password (Max 8 Chars)"
                 type="password"
                 placeholder="••••••••"
                 value={password}
@@ -488,6 +489,7 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
                 icon={<Lock className="w-4 h-4" />}
                 autoComplete="current-password"
                 required
+                maxLength={8}
                 error={errors.password}
                 touched={touched.password}
               />
@@ -564,13 +566,14 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
         ) : (
           <form onSubmit={handleResetPassword} className="flex flex-col gap-3">
             <Field
-              label="Create New Password"
+              label="Create New Password (Max 8 Chars)"
               type="password"
               placeholder="Min 6 characters"
               value={forgotPassword}
               onChange={setForgotPassword}
               icon={<Lock className="w-4 h-4" />}
               required
+              maxLength={8}
             />
             <div className="flex gap-2 pt-2">
               <Button type="button" variant="outline" className="flex-1" onClick={() => setForgotStep('verify')}>
@@ -792,7 +795,7 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured }: RegisterFormProps
             touched={touched.email}
           />
           <Field
-            label="Password"
+            label="Password (Max 8 Chars)"
             type="password"
             placeholder="Pass123#"
             value={password}
@@ -800,6 +803,7 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured }: RegisterFormProps
             icon={<Lock className="w-4 h-4" />}
             autoComplete="new-password"
             required
+            maxLength={8}
             error={errors.password}
             touched={touched.password}
           />
@@ -1262,7 +1266,7 @@ function MobileAuthSection({ mode, onSwitchMode, isGoogleConfigured }: MobileAut
                       {/* Password */}
                       <div>
                         <div className="flex justify-between items-center mb-1">
-                          <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">Password</label>
+                          <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">Password (Max 8 Chars)</label>
                           {touched.password && errors.password && (
                             <span className="text-[10px] font-semibold text-rose-500 flex items-center gap-0.5 animate-slide-up">
                               <AlertCircle size={10} />
@@ -1412,13 +1416,14 @@ function MobileAuthSection({ mode, onSwitchMode, isGoogleConfigured }: MobileAut
                 ) : (
                   <form onSubmit={handleResetPassword} className="flex flex-col gap-3">
                     <Field
-                      label="Create New Password"
+                      label="Create New Password (Max 8 Chars)"
                       type="password"
                       placeholder="Min 6 characters"
                       value={forgotPassword}
                       onChange={setForgotPassword}
                       icon={<Lock className="w-4 h-4" />}
                       required
+                      maxLength={8}
                     />
                     <div className="flex gap-2 pt-2">
                       <Button type="button" variant="outline" className="flex-1" onClick={() => setForgotStep('verify')}>
@@ -1594,7 +1599,7 @@ function MobileAuthSection({ mode, onSwitchMode, isGoogleConfigured }: MobileAut
                   {/* Password */}
                   <div>
                     <div className="flex justify-between items-center mb-0.5">
-                      <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">Password</label>
+                      <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">Password (Max 8 Chars)</label>
                       {touched.password && errors.password && (
                         <span className="text-[10px] font-semibold text-rose-500 flex items-center gap-0.5 animate-slide-up">
                           <AlertCircle size={10} />
