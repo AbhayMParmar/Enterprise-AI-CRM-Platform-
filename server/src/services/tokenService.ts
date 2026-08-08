@@ -12,10 +12,17 @@ export interface TokenPayload {
 export class TokenService {
   // Generate Access Token (JWT)
   static generateAccessToken(payload: TokenPayload): string {
-    const secret = process.env.JWT_SECRET || 'fallback_access_secret_123';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('JWT_SECRET environment variable is required in production');
+      }
+      console.warn('[AUTH] JWT_SECRET not set, using fallback for development only');
+    }
+    const finalSecret = secret || 'fallback_access_secret_123';
     const expiresIn = process.env.ACCESS_TOKEN_EXPIRY || '15m';
     
-    return jwt.sign(payload, secret, { expiresIn: expiresIn as any });
+    return jwt.sign(payload, finalSecret, { expiresIn: expiresIn as any });
   }
 
   // Generate Refresh Token database record
@@ -27,15 +34,12 @@ export class TokenService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiryDays);
 
-    try {
-      await RefreshToken.create({
-        userId: new Types.ObjectId(userId),
-        token,
-        expiresAt,
-      });
-    } catch (err) {
-      console.warn('RefreshToken creation warning (non-fatal):', err);
-    }
+    // MUST successfully store in MongoDB before returning token
+    await RefreshToken.create({
+      userId: new Types.ObjectId(userId),
+      token,
+      expiresAt,
+    });
 
     return token;
   }
@@ -69,9 +73,16 @@ export class TokenService {
 
   // Verify access token
   static verifyAccessToken(token: string): TokenPayload | null {
-    const secret = process.env.JWT_SECRET || 'fallback_access_secret_123';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('JWT_SECRET environment variable is required in production');
+      }
+      console.warn('[AUTH] JWT_SECRET not set, using fallback for development only');
+    }
+    const finalSecret = secret || 'fallback_access_secret_123';
     try {
-      return jwt.verify(token, secret) as TokenPayload;
+      return jwt.verify(token, finalSecret) as TokenPayload;
     } catch {
       return null;
     }

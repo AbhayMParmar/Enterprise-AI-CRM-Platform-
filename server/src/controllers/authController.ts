@@ -114,7 +114,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: any) {
-    console.error('Registration error:', error);
+    console.error('[AUTH] Registration error:', error);
 
     if (error.code === 11000) {
       res.status(400).json({ success: false, message: 'An account with this email already exists.' });
@@ -124,7 +124,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ success: false, message: error.message, errors: error.errors });
       return;
     }
-
+    // If refresh token creation failed, don't set cookie or return success
+    if (error.message?.includes('RefreshToken') || error.message?.includes('MongoDB')) {
+      res.status(500).json({ success: false, message: 'Session creation failed. Please try again.' });
+      return;
+    }
     res.status(500).json({ success: false, message: 'Registration failed due to server error. Please try again.' });
   }
 };
@@ -191,7 +195,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error: any) {
-    console.error('Login error:', error?.message || error);
+    console.error('[AUTH] Login error:', error?.message || error);
+    // If refresh token creation failed, don't set cookie or return success
+    if (error.message?.includes('RefreshToken') || error.message?.includes('MongoDB')) {
+      res.status(500).json({ success: false, message: 'Session creation failed. Please try again.' });
+      return;
+    }
     res.status(500).json({ success: false, message: 'Login failed due to server error. Please try again.' });
   }
 };
@@ -219,43 +228,58 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     const token = req.cookies?.refreshToken;
 
     if (!token) {
+      console.log('[AUTH] Refresh request received: No refresh token cookie present');
       res.status(401).json({ message: 'No refresh token provided' });
       return;
     }
 
+    console.log('[AUTH] Refresh request received: Refresh cookie present');
+
     const dbToken = await RefreshToken.findOne({ token }).populate('userId');
 
     if (!dbToken) {
-      // Token not found in database. Possible malicious reuse!
-      // In production, we'd log this and clear any cookies
+      console.log('[AUTH] Refresh token not found in database');
       TokenService.clearRefreshTokenCookie(res);
       res.status(401).json({ message: 'Session invalid or expired' });
       return;
     }
 
+    console.log('[AUTH] Refresh token found in database');
+
     const user = dbToken.userId as any; // Cast populated user
 
     if (!user || !user.id) {
+      console.log('[AUTH] User not found for refresh token');
       await RefreshToken.deleteOne({ _id: dbToken._id });
       TokenService.clearRefreshTokenCookie(res);
       res.status(401).json({ message: 'User account no longer exists' });
       return;
     }
 
+    console.log('[AUTH] User found for refresh token');
+
     // Check if token is active/expired
     if (!dbToken.isActive) {
-      // Token has been revoked or has expired
+      console.log('[AUTH] Refresh token expired or revoked');
       await RefreshToken.deleteOne({ _id: dbToken._id });
       TokenService.clearRefreshTokenCookie(res);
       res.status(401).json({ message: 'Session expired' });
       return;
     }
 
-    // Rotate token: Delete current token and generate new ones
-    await RefreshToken.deleteOne({ _id: dbToken._id });
-    
+    console.log('[AUTH] Refresh token is active');
+
+    // SAFE TOKEN ROTATION: Create new token BEFORE deleting old one
+    // This prevents session loss if database fails during rotation
     const newAccessToken = TokenService.generateAccessToken({ id: user.id, role: user.role });
     const newRefreshToken = await TokenService.generateRefreshToken(user.id);
+
+    console.log('[AUTH] New refresh token generated successfully');
+
+    // Only delete old token after new one is successfully created
+    await RefreshToken.deleteOne({ _id: dbToken._id });
+
+    console.log('[AUTH] Old refresh token deleted');
 
     // Set new cookie
     TokenService.setRefreshTokenCookie(res, newRefreshToken);
@@ -271,8 +295,8 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
       },
     });
   } catch (error: any) {
-    console.error('Refresh token error:', error);
-    res.status(500).json({ message: 'Server error during token refresh', error: error.message });
+    console.error('[AUTH] Refresh token error:', error.message);
+    res.status(500).json({ message: 'Server error during token refresh' });
   }
 };
 
@@ -462,6 +486,12 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
       }).catch((err) => console.warn('[Background Email Notification Ignored]:', err?.message));
     });
   } catch (error: any) {
+    console.error('[AUTH] Google login error:', error?.message || error);
+    // If refresh token creation failed, don't set cookie or return success
+    if (error.message?.includes('RefreshToken') || error.message?.includes('MongoDB')) {
+      res.status(500).json({ success: false, message: 'Session creation failed. Please try again.' });
+      return;
+    }
     res.status(500).json({ 
       success: false,
       message: 'Server error during Google login',
