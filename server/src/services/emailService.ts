@@ -41,6 +41,9 @@ class EmailService {
           port,
           secure: port === 465,
           auth: { user, pass },
+          connectionTimeout: 2500, // 2.5s connection timeout
+          greetingTimeout: 2500,   // 2.5s greeting timeout
+          socketTimeout: 3000,     // 3s socket timeout
           tls: {
             rejectUnauthorized: false, // For development only
           },

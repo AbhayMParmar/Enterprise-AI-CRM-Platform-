@@ -434,19 +434,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
     // Set HTTP-only refresh token cookie
     TokenService.setRefreshTokenCookie(res, refreshToken);
 
-    // Asynchronously dispatch Google Login Security Notification Email (Feature 3 requirement)
-    const clientIp = (req.headers['x-forwarded-for'] as string || req.ip || '127.0.0.1').split(',')[0].trim();
-    const userAgent = req.headers['user-agent'] || 'Unknown Browser';
-
-    emailService.sendGoogleLoginSecurityNotification({
-      email: user.email,
-      name: user.name,
-      ipAddress: clientIp,
-      userAgent,
-      dateTime: new Date().toUTCString(),
-    });
-
-    // Return same response structure as email login
+    // Return response immediately to prevent Vercel 504 gateway timeout
     res.status(200).json({
       success: true,
       message: 'Google login successful',
@@ -458,6 +446,20 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
         role: user.role,
         avatar: user.avatar,
       },
+    });
+
+    // Asynchronously dispatch Google Login Security Notification Email in background (non-blocking)
+    const clientIp = (req.headers['x-forwarded-for'] as string || req.ip || '127.0.0.1').split(',')[0].trim();
+    const userAgent = req.headers['user-agent'] || 'Unknown Browser';
+
+    setImmediate(() => {
+      emailService.sendGoogleLoginSecurityNotification({
+        email: user.email,
+        name: user.name,
+        ipAddress: clientIp,
+        userAgent,
+        dateTime: new Date().toUTCString(),
+      }).catch((err) => console.warn('[Background Email Notification Ignored]:', err?.message));
     });
   } catch (error: any) {
     res.status(500).json({ 
