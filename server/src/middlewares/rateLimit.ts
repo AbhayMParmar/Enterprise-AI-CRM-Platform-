@@ -28,9 +28,9 @@ class RateLimiter {
   private getClientId(req: Request): string {
     // Use IP address as identifier
     const ip = req.ip || 
-                req.connection.remoteAddress || 
-                req.socket.remoteAddress || 
-                (req.connection.socket as any)?.remoteAddress ||
+                req.connection?.remoteAddress || 
+                (req.socket as any)?.remoteAddress ||
+                (req.connection as any)?.socket?.remoteAddress ||
                 'unknown';
     return ip;
   }
@@ -104,7 +104,7 @@ class RateLimiter {
 export const createRateLimiter = (windowMs: number, maxRequests: number) => {
   const limiter = new RateLimiter(windowMs, maxRequests);
   
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
     const result = limiter.checkLimit(req);
     
     // Add rate limit headers
@@ -116,11 +116,12 @@ export const createRateLimiter = (windowMs: number, maxRequests: number) => {
       const retryAfter = Math.ceil((result.resetTime - Date.now()) / 1000);
       res.setHeader('Retry-After', retryAfter.toString());
       
-      return res.status(429).json({
+      res.status(429).json({
         success: false,
         message: 'Too many requests. Please try again later.',
         retryAfter,
       });
+      return;
     }
     
     next();

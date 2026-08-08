@@ -23,6 +23,7 @@ import useAuthStore from '../store/authStore';
 import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
 import NotificationBell from '../components/notifications/NotificationBell';
+import { Logo } from '../components/common/Logo';
 
 type UserRole = 'SuperAdmin' | 'Admin' | 'SalesManager' | 'SalesRep';
 
@@ -121,15 +122,13 @@ export const DashboardLayout = () => {
         `}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-brand-border flex-shrink-0">
-          {!isSidebarCollapsed && (
-            <div className="flex items-center gap-2 font-bold text-lg text-brand-primary tracking-tight">
-              <span className="bg-brand-primary text-white p-1.5 rounded-lg text-xs leading-none">AI</span>
-              <span>CRM Platform</span>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-brand-border flex-shrink-0">
+          {!isSidebarCollapsed ? (
+            <Logo size="sm" showText={true} />
+          ) : (
+            <div className="mx-auto">
+              <Logo size="sm" showText={false} />
             </div>
-          )}
-          {isSidebarCollapsed && (
-            <div className="mx-auto font-bold text-xl text-brand-primary">AI</div>
           )}
         </div>
 

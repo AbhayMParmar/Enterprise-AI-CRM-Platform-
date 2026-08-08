@@ -44,7 +44,7 @@ const validateField = (name: string, value: string, isSignup = false): string | 
 
   if (name === 'password') {
     if (!value) return 'Password is required';
-    if (value.length < 8) return 'Password must be exactly 8 characters';
+    if (value.length < 8) return 'Password must be at least 8 characters';
     if (!/[A-Z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
       return 'Must include uppercase, digit & symbol';
     }
@@ -58,6 +58,7 @@ const validateField = (name: string, value: string, isSignup = false): string | 
 
   return undefined;
 };
+
 
 /* ─────────────────────────────────── form field (desktop) ─── */
 interface FieldProps {
@@ -299,12 +300,12 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
   };
 
   const handlePasswordChange = (v: string) => {
-    if (v.length > 8) return;
     setPassword(v);
     if (touched.password) {
       setErrors(prev => ({ ...prev, password: validateField('password', v) }));
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,8 +370,8 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
     try {
       const res = await api.post('/auth/forgot-password', { email: forgotEmail });
       success(res.data.message || 'OTP sent to your email.');
-      if (res.data.devOtp) {
-        setForgotDevOtp(res.data.devOtp);
+      if (res.data.devModeCode) {
+        setForgotDevOtp(res.data.devModeCode);
       }
       setForgotStep('verify');
     } catch (err: any) {
@@ -487,10 +488,10 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
                 icon={<Lock className="w-4 h-4" />}
                 autoComplete="current-password"
                 required
-                maxLength={8}
                 error={errors.password}
                 touched={touched.password}
               />
+
 
               <div className="flex items-center justify-between text-xs pt-0.5">
                 <label className="flex items-center gap-1.5 text-brand-textSecondary cursor-pointer">
@@ -685,7 +686,6 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured }: RegisterFormProps
   };
 
   const handlePasswordChange = (v: string) => {
-    if (v.length > 8) return;
     setPassword(v);
     if (touched.password) {
       setErrors(prev => ({ ...prev, password: validateField('password', v) }));
@@ -800,10 +800,10 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured }: RegisterFormProps
             icon={<Lock className="w-4 h-4" />}
             autoComplete="new-password"
             required
-            maxLength={8}
             error={errors.password}
             touched={touched.password}
           />
+
 
           {/* Role selector */}
           <div className="flex flex-col gap-1">
@@ -918,8 +918,6 @@ function MobileAuthSection({ mode, onSwitchMode, isGoogleConfigured }: MobileAut
     const { name, value, type } = e.target;
     const fieldValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
 
-    if (name === 'password' && typeof fieldValue === 'string' && fieldValue.length > 8) return;
-
     setFormData(prev => ({ ...prev, [name]: fieldValue }));
 
     if (type !== 'checkbox') {
@@ -927,6 +925,7 @@ function MobileAuthSection({ mode, onSwitchMode, isGoogleConfigured }: MobileAut
       setErrors(prev => ({ ...prev, [name]: err }));
     }
   };
+
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -1042,8 +1041,8 @@ function MobileAuthSection({ mode, onSwitchMode, isGoogleConfigured }: MobileAut
     try {
       const res = await api.post('/auth/forgot-password', { email: forgotEmail });
       success(res.data.message || 'OTP sent to your email.');
-      if (res.data.devOtp) {
-        setForgotDevOtp(res.data.devOtp);
+      if (res.data.devModeCode) {
+        setForgotDevOtp(res.data.devModeCode);
       }
       setForgotStep('verify');
     } catch (err: any) {

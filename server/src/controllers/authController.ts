@@ -14,7 +14,13 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password is too long')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   role: z.enum(['SuperAdmin', 'Admin', 'SalesManager', 'SalesRep']).optional(),
 });
 
@@ -22,6 +28,7 @@ const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(1, 'Password is required'),
 });
+
 
 // Password Reset Validation Schemas
 const forgotPasswordSchema = z.object({
@@ -81,6 +88,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     TokenService.setRefreshTokenCookie(res, refreshToken);
 
     res.status(201).json({
+      success: true,
       message: 'Registration successful',
       accessToken,
       user: {
@@ -93,7 +101,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration', error: error.message });
+    // Handle duplicate key (email already exists)
+    if (error.code === 11000) {
+      res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+      return;
+    }
+    res.status(500).json({ success: false, message: 'Server error during registration', error: error.message });
   }
 };
 
@@ -132,6 +145,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     TokenService.setRefreshTokenCookie(res, refreshToken);
 
     res.status(200).json({
+      success: true,
       message: 'Login successful',
       accessToken,
       user: {
@@ -144,7 +158,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login', error: error.message });
+    res.status(500).json({ success: false, message: 'Server error during login', error: error.message });
   }
 };
 

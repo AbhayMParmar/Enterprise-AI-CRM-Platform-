@@ -8,8 +8,8 @@ export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
-) => {
+  _next: NextFunction
+): void => {
   // Development logging
   if (process.env.NODE_ENV === 'development') {
     console.error('[Error Handler] Error caught:', {
@@ -26,48 +26,54 @@ export const errorHandler = (
 
   // Handle specific error types
   if (err.name === 'ValidationError') {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: 'Validation error',
       errors: err.errors,
     });
+    return;
   }
 
   if (err.name === 'UnauthorizedError') {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'Unauthorized access',
     });
+    return;
   }
 
   if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'Invalid token',
     });
+    return;
   }
 
   if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       message: 'Token expired',
     });
+    return;
   }
 
   if (err.code === 11000) {
     // MongoDB duplicate key error
-    return res.status(409).json({
+    res.status(409).json({
       success: false,
       message: 'Duplicate entry',
-      field: Object.keys(err.keyPattern)[0],
+      field: Object.keys(err.keyPattern || {})[0],
     });
+    return;
   }
 
   if (err.name === 'CastError') {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: 'Invalid data format',
     });
+    return;
   }
 
   // Default error response

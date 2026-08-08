@@ -43,7 +43,7 @@ export const Register = () => {
 
     if (name === 'password') {
       if (!value) return 'Password is required';
-      if (value.length < 8) return 'Password must be exactly 8 characters';
+      if (value.length < 8) return 'Password must be at least 8 characters';
       if (!/[A-Z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
         return 'Must include uppercase, digit & symbol';
       }
@@ -55,14 +55,11 @@ export const Register = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    if (name === 'password' && value.length > 8) {
-      return;
-    }
-
     if (name === 'fullName') setName(value);
     if (name === 'email') setEmail(value);
     if (name === 'password') setPassword(value);
     if (name === 'role') setRole(value as any);
+
 
     if (name !== 'role') {
       const error = validateField(name, value);
@@ -339,7 +336,7 @@ export const Register = () => {
                 <div>
                   <div className="flex justify-between items-center mb-0.5">
                     <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">
-                      Password (Max 8 Chars)
+                      Password (Min 8 Chars)
                     </label>
                     {touched.password && errors.password && (
                       <span className="text-[10px] font-semibold text-rose-500 flex items-center gap-0.5 animate-slide-up">
@@ -360,7 +357,6 @@ export const Register = () => {
                       value={password}
                       onChange={handleInputChange}
                       onBlur={handleBlur}
-                      maxLength={8}
                       placeholder="Pass123#"
                       className={`w-full pl-9 pr-9 py-2 bg-[#f8fafc] border rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-all font-medium shadow-xs ${
                         touched.password && errors.password

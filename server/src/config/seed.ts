@@ -79,7 +79,7 @@ export const seedDatabase = async (): Promise<void> => {
         },
       ];
 
-      await Customer.insertMany(sampleCustomers);
+      const createdCustomers = await Customer.insertMany(sampleCustomers);
 
       // 3. Seed Default Deals for Kanban Pipeline
       const sampleDeals = [

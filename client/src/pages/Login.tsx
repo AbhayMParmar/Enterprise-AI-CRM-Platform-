@@ -87,7 +87,7 @@ export const Login = () => {
 
     if (name === 'password') {
       if (!value) return 'Password is required';
-      if (value.length < 8) return 'Password must be exactly 8 characters';
+      if (value.length < 8) return 'Password must be at least 8 characters';
       if (!/[A-Z]/.test(value) || !/[0-9]/.test(value) || !/[^A-Za-z0-9]/.test(value)) {
         return 'Must include uppercase, digit & symbol';
       }
@@ -106,11 +106,6 @@ export const Login = () => {
     const { name, value, type } = e.target;
     const fieldValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
 
-    // Strict enforce max 8 characters limit for password
-    if (name === 'password' && typeof fieldValue === 'string' && fieldValue.length > 8) {
-      return;
-    }
-
     setFormData(prev => ({ ...prev, [name]: fieldValue }));
 
     if (type !== 'checkbox') {
@@ -118,6 +113,8 @@ export const Login = () => {
       setErrors(prev => ({ ...prev, [name]: error }));
     }
   };
+
+
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -440,8 +437,9 @@ export const Login = () => {
                       <div>
                         <div className="flex justify-between items-center mb-1">
                           <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">
-                            Password (Max 8 Chars)
+                            Password
                           </label>
+
                           {touched.password && errors.password && (
                             <span className="text-[10px] font-semibold text-rose-500 flex items-center gap-0.5 animate-slide-up">
                               <AlertCircle size={10} />
@@ -460,7 +458,7 @@ export const Login = () => {
                             value={formData.password}
                             onChange={handleInputChange}
                             onBlur={handleBlur}
-                            maxLength={8}
+                          maxLength={128}
                             placeholder="••••••••"
                             className={`w-full pl-9 pr-9 py-2 sm:py-2.5 bg-[#f8fafc] border rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-all font-medium shadow-xs ${touched.password && errors.password
                                 ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400/20 animate-shake'
@@ -753,11 +751,11 @@ export const Login = () => {
                         </div>
                       </div>
 
-                      {/* Password Input (Strict Max 8 Chars & Strict Complexity) */}
+                      {/* Password Input (Min 8 Chars & Complexity) */}
                       <div>
                         <div className="flex justify-between items-center mb-0.5">
                           <label className="block text-[11px] sm:text-xs font-semibold text-slate-700">
-                            Password (Max 8 Chars)
+                            Password (Min 8 Chars)
                           </label>
                           {touched.password && errors.password && (
                             <span className="text-[10px] font-semibold text-rose-500 flex items-center gap-0.5 animate-slide-up">
@@ -777,7 +775,6 @@ export const Login = () => {
                             value={formData.password}
                             onChange={handleInputChange}
                             onBlur={handleBlur}
-                            maxLength={8}
                             placeholder="Pass123#"
                             className={`w-full pl-9 pr-9 py-2 bg-[#f8fafc] border rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none transition-all font-medium shadow-xs ${touched.password && errors.password
                                 ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400/20 animate-shake'

@@ -69,7 +69,11 @@ export const copilotChat = async (req: AuthenticatedRequest, res: Response): Pro
       return;
     }
 
-    const reply = await AiService.chatCopilot(validation.data.prompt, validation.data.history);
+    const history = (validation.data.history ?? [])
+      .filter((m): m is { role: string; content: string } =>
+        typeof m.role === 'string' && typeof m.content === 'string'
+      );
+    const reply = await AiService.chatCopilot(validation.data.prompt, history);
 
     res.status(200).json({ reply });
   } catch (error: any) {

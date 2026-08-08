@@ -56,8 +56,11 @@ const PasswordResetOTPSchema: Schema<IPasswordResetOTP> = new Schema(
 // Compound index for efficient lookups
 PasswordResetOTPSchema.index({ email: 1, verified: 1 });
 
-// Prevent duplicate OTPs for the same email (only one active OTP per email)
-PasswordResetOTPSchema.index({ email: 1, verified: false }, { unique: true });
+// Partial unique index — only one unverified OTP allowed per email at a time
+PasswordResetOTPSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { verified: false } }
+);
 
 const PasswordResetOTP: Model<IPasswordResetOTP> = mongoose.models.PasswordResetOTP || mongoose.model<IPasswordResetOTP>('PasswordResetOTP', PasswordResetOTPSchema);
 
