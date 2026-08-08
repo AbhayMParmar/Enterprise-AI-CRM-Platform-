@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { TokenService } from '../services/tokenService';
@@ -54,9 +55,20 @@ const resetPasswordSchema = z.object({
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Ensure DB connection is active
+    if (mongoose.connection.readyState !== 1) {
+      try {
+        const { connectDB } = await import('../config/db');
+        await connectDB();
+      } catch (dbErr) {
+        console.error('Database connection attempt during registration failed:', dbErr);
+      }
+    }
+
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
       res.status(400).json({ 
+        success: false,
         message: 'Validation failed', 
         errors: validation.error.flatten().fieldErrors 
       });
@@ -106,6 +118,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Handle duplicate key (email already exists)
     if (error.code === 11000) {
       res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+      return;
+    }
+    // Handle Mongoose validation errors gracefully
+    if (error.name === 'ValidationError') {
+      res.status(400).json({ success: false, message: error.message, errors: error.errors });
       return;
     }
     res.status(500).json({ success: false, message: 'Server error during registration', error: error.message });
