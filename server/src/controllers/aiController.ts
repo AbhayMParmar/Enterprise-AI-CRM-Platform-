@@ -29,7 +29,7 @@ export const generateEmail = async (req: AuthenticatedRequest, res: Response): P
       return;
     }
 
-    const emailContent = await AiService.generateSalesEmail(validation.data);
+    const emailContent = await AiService.generateSalesEmail(validation.data as any);
 
     if (req.user) {
       await LoggerService.log(req.user.id, 'AI_EMAIL_GENERATE', { recipient: validation.data.recipientName, type: validation.data.emailType });

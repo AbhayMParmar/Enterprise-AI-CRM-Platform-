@@ -11,8 +11,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "baseUrl": ".."
+    "baseUrl": "."
   },
-  "include": ["index.ts"],
-  "exclude": ["node_modules", "../client", "../server"]
+  "include": ["index.ts", "../server/src/**/*"],
+  "exclude": ["node_modules", "../client"]
 }

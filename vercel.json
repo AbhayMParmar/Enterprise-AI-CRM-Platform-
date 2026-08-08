@@ -3,7 +3,7 @@
   "framework": null,
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "client/dist",
-  "installCommand": "npm install",
+  "installCommand": "npm install && cd server && npm install && cd ../client && npm install",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -16,8 +16,7 @@
   ],
   "functions": {
     "api/index.ts": {
-      "maxDuration": 30,
-      "memory": 1024
+      "maxDuration": 30
     }
   },
   "headers": [
