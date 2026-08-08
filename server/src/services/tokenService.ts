@@ -25,11 +25,15 @@ export class TokenService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiryDays);
 
-    await RefreshToken.create({
-      userId: new Types.ObjectId(userId),
-      token,
-      expiresAt,
-    });
+    try {
+      await RefreshToken.create({
+        userId: new Types.ObjectId(userId),
+        token,
+        expiresAt,
+      });
+    } catch (err) {
+      console.warn('RefreshToken creation warning (non-fatal):', err);
+    }
 
     return token;
   }

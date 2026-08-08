@@ -34,20 +34,15 @@ let app: ((req: IncomingMessage, res: ServerResponse, next?: () => void) => void
  * Dynamic imports prevent module-level errors from killing cold starts.
  */
 async function bootstrap(): Promise<typeof app> {
-  if (app) return app;
-
-  // Connect to MongoDB (only once per container)
-  if (!isConnected) {
-    try {
-      const { connectDB } = await import('../server/src/config/db');
-      await connectDB();
-      isConnected = true;
-    } catch (err) {
-      console.error('[Vercel] MongoDB connection failed:', err);
-      // Continue — Express will still handle requests, but DB-dependent
-      // routes will fail gracefully with their own error messages.
-    }
+  // Ensure DB connection is active
+  try {
+    const { connectDB } = await import('../server/src/config/db');
+    await connectDB();
+  } catch (err) {
+    console.error('[Vercel] MongoDB connection failed:', err);
   }
+
+  if (app) return app;
 
   // Import the Express app after env + DB are ready
   const { default: expressApp } = await import('../server/src/app');
