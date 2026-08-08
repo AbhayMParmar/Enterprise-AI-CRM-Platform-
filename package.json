@@ -7,7 +7,7 @@
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
-    "vercel-build": "cd client && npm install && npm run build",
+    "vercel-build": "npm install --include=dev && cd client && npm install && npm run build",
     "postinstall": "cd server && npm install",
     "start": "cd server && npm start"
   },
@@ -20,6 +20,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@vercel/node": "^3.2.29",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.6",
@@ -36,6 +37,7 @@
     "nodemailer": "^9.0.3",
     "redis": "^4.6.15",
     "sharp": "^0.35.3",
+    "typescript": "^5.5.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -47,8 +49,6 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^20.14.10",
     "@types/nodemailer": "^8.0.1",
-    "@vercel/node": "^3.2.29",
-    "concurrently": "^8.2.2",
-    "typescript": "^5.5.3"
+    "concurrently": "^8.2.2"
   }
 }
