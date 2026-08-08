@@ -308,6 +308,11 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
   };
 
 
+  const getRoleDashboard = (role: string) => {
+    if (role === 'SuperAdmin') return '/super-admin';
+    return '/dashboard';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -338,7 +343,9 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
       const res = await api.post('/auth/login', { email, password });
       login(res.data.accessToken, res.data.user);
       success('Welcome back! Logged in successfully.');
-      navigate(from, { replace: true });
+      // Role-based redirect: SuperAdmin → /super-admin, everyone else → from or /dashboard
+      const destination = from !== '/dashboard' ? from : getRoleDashboard(res.data.user?.role);
+      navigate(destination, { replace: true });
     } catch (err: any) {
       error(err.response?.data?.message || 'Invalid email or password.');
     } finally {
@@ -352,7 +359,7 @@ function LoginForm({ onSwitchToRegister, isGoogleConfigured }: LoginFormProps) {
       const res = await api.post('/auth/google-login', { credential: 'mock-google-token-johndoe' });
       login(res.data.accessToken, res.data.user);
       success('Logged in via Google successfully!');
-      navigate(from, { replace: true });
+      navigate(getRoleDashboard(res.data.user?.role), { replace: true });
     } catch {
       error('Google authentication failed.');
     } finally {
@@ -1748,7 +1755,9 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
       const res = await api.post('/auth/google-login', { credential });
       login(res.data.accessToken, res.data.user);
       success('Logged in via Google successfully!');
-      navigate(from, { replace: true });
+      // Role-based redirect
+      const dest = res.data.user?.role === 'SuperAdmin' ? '/super-admin' : (from !== '/dashboard' ? from : '/dashboard');
+      navigate(dest, { replace: true });
     } catch (err: any) {
       error(err.response?.data?.message || 'Google authentication failed.');
     }

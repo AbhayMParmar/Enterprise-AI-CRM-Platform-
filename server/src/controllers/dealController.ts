@@ -276,16 +276,18 @@ export const getSalesAnalytics = async (req: AuthenticatedRequest, res: Response
         activePipelineValue += val;
       }
 
-      // Rep leaderboard tracking
-      if (deal.assignedTo) {
+      // Rep leaderboard tracking safely guarded against missing/deleted users
+      if (deal.assignedTo && typeof deal.assignedTo === 'object') {
         const rep = deal.assignedTo as any;
-        const repId = rep._id.toString();
-        if (!repPerformance[repId]) {
-          repPerformance[repId] = { name: rep.name, avatar: rep.avatar, wonValue: 0, dealsCount: 0 };
-        }
-        repPerformance[repId].dealsCount += 1;
-        if (deal.stage === 'Won') {
-          repPerformance[repId].wonValue += val;
+        const repId = rep._id ? rep._id.toString() : (rep.id ? rep.id.toString() : null);
+        if (repId) {
+          if (!repPerformance[repId]) {
+            repPerformance[repId] = { name: rep.name || 'Sales Rep', avatar: rep.avatar, wonValue: 0, dealsCount: 0 };
+          }
+          repPerformance[repId].dealsCount += 1;
+          if (deal.stage === 'Won') {
+            repPerformance[repId].wonValue += val;
+          }
         }
       }
     });

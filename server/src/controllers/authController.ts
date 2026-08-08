@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import mongoose from 'mongoose';
 import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { TokenService } from '../services/tokenService';
@@ -56,7 +55,6 @@ const resetPasswordSchema = z.object({
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Ensure DB connection is active
     await connectDB();
 
     const validation = registerSchema.safeParse(req.body);
@@ -72,39 +70,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const { name, email, password, role } = validation.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    let newUser: any = null;
-
-    if (mongoose.connection.readyState === 1) {
-      // Check if user already exists
-      const existingUser = await User.findOne({ email: normalizedEmail });
-      if (existingUser) {
-        res.status(400).json({ success: false, message: 'An account with this email already exists.' });
-        return;
-      }
-
-      // Create user
-      newUser = await User.create({
-        name,
-        email: normalizedEmail,
-        password,
-        role: role || 'SalesRep',
-        isVerified: false,
-      });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+      return;
     }
 
-    // Fail-safe user object if database is initializing or offline
-    if (!newUser) {
-      newUser = {
-        id: new mongoose.Types.ObjectId().toString(),
-        name,
-        email: normalizedEmail,
-        role: role || 'SalesRep',
-        avatar: '',
-      };
-    }
+    // Create user
+    const newUser = await User.create({
+      name,
+      email: normalizedEmail,
+      password,
+      role: role || 'SalesRep',
+      isVerified: false,
+    });
 
-    const userId = newUser.id || newUser._id?.toString() || new mongoose.Types.ObjectId().toString();
-    const userRole = newUser.role || role || 'SalesRep';
+    const userId = newUser.id || (newUser._id as any).toString();
+    const userRole = newUser.role || 'SalesRep';
 
     // Generate tokens
     const accessToken = TokenService.generateAccessToken({ id: userId, role: userRole });
@@ -128,47 +111,21 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   } catch (error: any) {
     console.error('Registration error:', error);
 
-    // Handle duplicate key (email already exists)
     if (error.code === 11000) {
       res.status(400).json({ success: false, message: 'An account with this email already exists.' });
       return;
     }
-    // Handle Mongoose validation errors gracefully
     if (error.name === 'ValidationError') {
       res.status(400).json({ success: false, message: error.message, errors: error.errors });
       return;
     }
 
-    // High-availability fallback: never return a 500 error for valid registration requests
-    try {
-      const { name, email, role } = req.body || {};
-      const fallbackId = new mongoose.Types.ObjectId().toString();
-      const fallbackRole = role || 'SalesRep';
-      const accessToken = TokenService.generateAccessToken({ id: fallbackId, role: fallbackRole });
-      const refreshToken = await TokenService.generateRefreshToken(fallbackId);
-      TokenService.setRefreshTokenCookie(res, refreshToken);
-
-      res.status(201).json({
-        success: true,
-        message: 'Registration successful',
-        accessToken,
-        user: {
-          id: fallbackId,
-          name: name || 'User',
-          email: (email || '').toLowerCase().trim(),
-          role: fallbackRole,
-          avatar: '',
-        },
-      });
-    } catch (fallbackErr: any) {
-      res.status(400).json({ success: false, message: 'Failed to create account. Please check your details.' });
-    }
+    res.status(500).json({ success: false, message: 'Registration failed due to server error. Please try again.' });
   }
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    // Ensure DB connection is active
     await connectDB();
 
     const validation = loginSchema.safeParse(req.body);
@@ -184,55 +141,26 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = validation.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    let user: any = null;
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
-    if (mongoose.connection.readyState === 1) {
-      user = await User.findOne({ email: normalizedEmail }).select('+password');
+    if (!user) {
+      res.status(400).json({ success: false, message: 'Invalid email or password' });
+      return;
     }
 
-    if (user) {
-      // User exists in DB — verify password if password exists
-      if (user.password) {
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-          res.status(400).json({ success: false, message: 'Invalid email or password' });
-          return;
-        }
-      }
-    } else {
-      // User does not exist in DB yet — auto-create user document so login succeeds smoothly
-      if (mongoose.connection.readyState === 1) {
-        try {
-          user = await User.create({
-            name: normalizedEmail.split('@')[0],
-            email: normalizedEmail,
-            password,
-            role: 'SalesRep',
-            isVerified: true,
-          });
-        } catch (createErr) {
-          console.warn('Auto-create user during login warning:', createErr);
-        }
-      }
-
-      if (!user) {
-        user = {
-          id: new mongoose.Types.ObjectId().toString(),
-          name: normalizedEmail.split('@')[0],
-          email: normalizedEmail,
-          role: 'SalesRep',
-          avatar: '',
-        };
+    if (user.password) {
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        res.status(400).json({ success: false, message: 'Invalid email or password' });
+        return;
       }
     }
 
-    const userId = user.id || user._id?.toString() || new mongoose.Types.ObjectId().toString();
+    const userId = user.id || (user._id as any).toString();
     const userRole = user.role || 'SalesRep';
 
-    // Update lastLogin timestamp (fire-and-forget, non-fatal)
-    if (mongoose.connection.readyState === 1 && user._id) {
-      User.findByIdAndUpdate(user._id, { lastLogin: new Date() }).catch(() => {});
-    }
+    // Update lastLogin timestamp asynchronously
+    User.findByIdAndUpdate(user._id, { lastLogin: new Date() }).catch(() => {});
 
     // Generate tokens
     const accessToken = TokenService.generateAccessToken({ id: userId, role: userRole });
@@ -255,31 +183,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: any) {
     console.error('Login error:', error?.message || error);
-
-    // High-availability fallback: ensure valid login attempt never crashes or fails abruptly
-    try {
-      const { email } = req.body || {};
-      const normalizedEmail = (email || 'user@example.com').toLowerCase().trim();
-      const fallbackId = new mongoose.Types.ObjectId().toString();
-      const accessToken = TokenService.generateAccessToken({ id: fallbackId, role: 'SalesRep' });
-      const refreshToken = await TokenService.generateRefreshToken(fallbackId);
-      TokenService.setRefreshTokenCookie(res, refreshToken);
-
-      res.status(200).json({
-        success: true,
-        message: 'Login successful',
-        accessToken,
-        user: {
-          id: fallbackId,
-          name: normalizedEmail.split('@')[0],
-          email: normalizedEmail,
-          role: 'SalesRep',
-          avatar: '',
-        },
-      });
-    } catch (fallbackErr: any) {
-      res.status(400).json({ success: false, message: 'Invalid email or password.' });
-    }
+    res.status(500).json({ success: false, message: 'Login failed due to server error. Please try again.' });
   }
 };
 

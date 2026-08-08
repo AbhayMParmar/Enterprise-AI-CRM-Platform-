@@ -197,7 +197,9 @@ export const Login = () => {
         const { accessToken, user } = response.data;
         login(accessToken, user);
         success('Logged in successfully!');
-        navigate(from, { replace: true });
+        // Role-based redirect: SuperAdmin goes to super-admin dashboard
+        const dest = user?.role === 'SuperAdmin' ? '/super-admin' : from;
+        navigate(dest, { replace: true });
       } catch (err: any) {
         const errMsg = err.response?.data?.message || 'Invalid email or password.';
         setSubmittedMessage({ text: errMsg, type: 'error' });
@@ -238,7 +240,9 @@ export const Login = () => {
         const { accessToken: jwtToken, user } = response.data;
         login(jwtToken, user);
         success('Signed in with Google successfully!');
-        navigate(from, { replace: true });
+        // Role-based redirect
+        const dest = user?.role === 'SuperAdmin' ? '/super-admin' : from;
+        navigate(dest, { replace: true });
       } catch (err: any) {
         const errMsg = err.response?.data?.message || 'Google sign-in failed. Please try again.';
         setSubmittedMessage({ text: errMsg, type: 'error' });

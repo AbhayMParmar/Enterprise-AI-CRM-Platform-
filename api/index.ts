@@ -59,13 +59,21 @@ export default async function handler(
 ): Promise<void> {
   // ── Handle OPTIONS preflight for CORS ─────────────────────────────────────
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin': req.headers.origin || '*',
+    const origin = (req.headers.origin as string) || '';
+    const headers: Record<string, string> = {
       'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
       'Access-Control-Allow-Headers': 'Authorization,Content-Type,Cookie,X-Requested-With',
-      'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400',
-    });
+    };
+
+    if (origin) {
+      headers['Access-Control-Allow-Origin'] = origin;
+      headers['Access-Control-Allow-Credentials'] = 'true';
+    } else {
+      headers['Access-Control-Allow-Origin'] = '*';
+    }
+
+    res.writeHead(204, headers);
     res.end();
     return;
   }

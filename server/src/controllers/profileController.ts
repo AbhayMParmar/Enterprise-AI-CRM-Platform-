@@ -53,16 +53,21 @@ const deleteAccountSchema = z.object({
 
 export const getProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    if (!req.user) { sendError(res, 'Not authenticated', 401); return; }
+    if (!req.user || !req.user.id) { sendError(res, 'Not authenticated', 401); return; }
 
     const user = await User.findById(req.user.id);
     if (!user) { sendError(res, 'User not found', 404); return; }
 
-    const activeSessionsCount = await RefreshToken.countDocuments({ userId: user.id });
+    let activeSessionsCount = 1;
+    try {
+      activeSessionsCount = await RefreshToken.countDocuments({ userId: user._id });
+    } catch {
+      activeSessionsCount = 1;
+    }
 
     sendSuccess(res, {
       user: {
-        id: user.id,
+        id: user.id || user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
@@ -73,7 +78,7 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response): Prom
         isVerified: user.isVerified,
         googleId: user.googleId || null,
         isGoogleConnected: !!user.googleId,
-        hasPassword: false, // evaluated next line via separate query
+        hasPassword: !!user.password,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLogin: user.lastLogin || user.updatedAt,

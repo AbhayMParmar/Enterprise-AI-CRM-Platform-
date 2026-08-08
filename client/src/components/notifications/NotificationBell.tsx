@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell, Check, CheckCheck, Sparkles, AlertCircle, Info, DollarSign, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../services/api';
+import useAuthStore from '../../store/authStore';
 
 export interface NotificationItem {
   _id: string;
@@ -17,8 +18,11 @@ export const NotificationBell: React.FC = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, accessToken } = useAuthStore();
 
   const fetchNotifications = async () => {
+    // Only fetch when authenticated with a real token
+    if (!isAuthenticated || !accessToken) return;
     try {
       const res = await api.get('/notifications');
       setNotifications(res.data.notifications || []);
@@ -33,7 +37,8 @@ export const NotificationBell: React.FC = () => {
     // Poll every 60 seconds — avoids rate limiting while staying reasonably fresh
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, accessToken]);
 
   const handleToggleOpen = () => {
     if (!isOpen) {

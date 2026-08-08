@@ -53,11 +53,14 @@ const ProtectedRoute = () => {
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
 };
 
-/** For Login & Register pages — redirects authenticated users to dashboard */
+/** For Login & Register pages — redirects authenticated users to correct dashboard */
 const GuestRoute = () => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
   if (isLoading) return null;
-  return !isAuthenticated ? <Outlet /> : <Navigate to="/dashboard" replace />;
+  if (!isAuthenticated) return <Outlet />;
+  // Role-based redirect after login
+  if (user?.role === 'SuperAdmin') return <Navigate to="/super-admin" replace />;
+  return <Navigate to="/dashboard" replace />;
 };
 
 /** RBAC guard — redirects to /unauthorized if role is insufficient */
@@ -90,16 +93,20 @@ export const AppRoutes = () => {
 
     const restoreSession = async () => {
       try {
-        const refreshRes = await api.post('/auth/refresh', {}, { timeout: 5000 });
+        // Attempt to silently refresh using the HttpOnly refresh-token cookie.
+        // This is the single source of truth for session restoration.
+        // No 'session-active' dummy token — only valid JWTs from the server.
+        const refreshRes = await api.post('/auth/refresh', {}, { timeout: 8000 });
         const { accessToken, user } = refreshRes.data;
-        login(accessToken, user);
-      } catch {
-        try {
-          const meRes = await api.get('/auth/me', { timeout: 5000 });
-          login('session-active', meRes.data.user);
-        } catch {
+        if (accessToken && user) {
+          login(accessToken, user);
+        } else {
+          // Server responded but data was malformed — clear session
           logout();
         }
+      } catch {
+        // Refresh token expired, missing, or server error — force re-login
+        logout();
       }
     };
 
