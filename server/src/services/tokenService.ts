@@ -21,7 +21,9 @@ export class TokenService {
   // Generate Refresh Token database record
   static async generateRefreshToken(userId: string): Promise<string> {
     const token = crypto.randomBytes(40).toString('hex');
-    const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY || '7', 10) || 7;
+    // Safely parse expiry: '7d' → 7, '7' → 7, '' → 7
+    const rawExpiry = process.env.REFRESH_TOKEN_EXPIRY || '7';
+    const expiryDays = Math.max(1, parseInt(rawExpiry.replace(/[^0-9]/g, ''), 10) || 7);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiryDays);
 
@@ -41,14 +43,15 @@ export class TokenService {
   // Set HTTP-only secure cookie
   static setRefreshTokenCookie(res: Response, token: string): void {
     const isProduction = process.env.NODE_ENV === 'production';
-    const expiryDays = parseInt(process.env.REFRESH_TOKEN_EXPIRY || '7', 10) || 7;
+    const rawExpiry = process.env.REFRESH_TOKEN_EXPIRY || '7';
+    const expiryDays = Math.max(1, parseInt(rawExpiry.replace(/[^0-9]/g, ''), 10) || 7);
     
     res.cookie('refreshToken', token, {
       httpOnly: true,
-      secure: isProduction, // Set to true in production
-      sameSite: isProduction ? 'none' : 'lax', // cross-site cookies in prod (if hosted on separate domains)
-      maxAge: expiryDays * 24 * 60 * 60 * 1000, // in milliseconds
-      path: '/api/auth', // only sent to authentication paths
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: expiryDays * 24 * 60 * 60 * 1000, // guaranteed integer ms
+      path: '/',  // Use root path so cookie is sent to ALL /api/* routes, not just /api/auth
     });
   }
 
@@ -60,7 +63,7 @@ export class TokenService {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
-      path: '/api/auth',
+      path: '/', // Must match the path used when setting the cookie
     });
   }
 

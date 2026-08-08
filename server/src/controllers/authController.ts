@@ -174,9 +174,20 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
+    // ── Ensure DB connection is active (critical for Vercel cold starts) ──────
+    if (mongoose.connection.readyState !== 1) {
+      try {
+        const { connectDB } = await import('../config/db');
+        await connectDB();
+      } catch (dbErr) {
+        console.warn('DB reconnection attempt during login failed:', dbErr);
+      }
+    }
+
     const validation = loginSchema.safeParse(req.body);
     if (!validation.success) {
       res.status(400).json({ 
+        success: false,
         message: 'Validation failed', 
         errors: validation.error.flatten().fieldErrors 
       });
@@ -186,25 +197,40 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const { email, password } = validation.data;
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Find user (explicitly request password field)
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
-    if (!user) {
-      res.status(400).json({ message: 'Invalid email or password' });
+    // Guard: if still not connected, return a meaningful error (not 500)
+    if (mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database temporarily unavailable. Please try again in a moment.' });
       return;
     }
 
-    // Check password
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      res.status(400).json({ message: 'Invalid email or password' });
+    // Find user (explicitly request password field)
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+    if (!user) {
+      res.status(400).json({ success: false, message: 'Invalid email or password' });
       return;
     }
+
+    // Guard: user has no password (Google OAuth account trying password login)
+    if (!user.password) {
+      res.status(400).json({ success: false, message: 'This account uses Google Sign-In. Please login with Google.' });
+      return;
+    }
+
+    // Check password via bcrypt
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      res.status(400).json({ success: false, message: 'Invalid email or password' });
+      return;
+    }
+
+    // Update lastLogin timestamp (fire-and-forget, non-fatal)
+    User.findByIdAndUpdate(user.id, { lastLogin: new Date() }).catch(() => {});
 
     // Generate tokens
     const accessToken = TokenService.generateAccessToken({ id: user.id, role: user.role });
     const refreshToken = await TokenService.generateRefreshToken(user.id);
 
-    // Set cookie
+    // Set HTTP-only cookie with refresh token
     TokenService.setRefreshTokenCookie(res, refreshToken);
 
     res.status(200).json({
@@ -216,12 +242,23 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         role: user.role,
-        avatar: user.avatar,
+        avatar: user.avatar || '',
       },
     });
   } catch (error: any) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error during login', error: error.message });
+    console.error('Login error:', error?.message || error);
+
+    // Mongoose buffer timeout — DB was not connected in time
+    if (error?.name === 'MongooseError' || error?.message?.includes('buffering timed out') || error?.message?.includes('ECONNREFUSED')) {
+      res.status(503).json({ success: false, message: 'Database temporarily unavailable. Please try again in a moment.' });
+      return;
+    }
+    // Duplicate key or validation — should not reach login but guard anyway
+    if (error.code === 11000) {
+      res.status(400).json({ success: false, message: 'Account conflict. Please contact support.' });
+      return;
+    }
+    res.status(500).json({ success: false, message: 'Login failed. Please try again.', error: error.message });
   }
 };
 
