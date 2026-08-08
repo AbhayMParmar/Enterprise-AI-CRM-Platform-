@@ -11,8 +11,6 @@ if (!process.env.VERCEL && !process.env.NOW_REGION) {
   }
 }
 
-const ATLAS_DEFAULT_URI = 'mongodb+srv://Abhay:admin123@cluster0.kl2spzo.mongodb.net/ai-crm?retryWrites=true&w=majority';
-
 let dbPromise: Promise<typeof mongoose | null> | null = null;
 
 export const connectDB = async (): Promise<typeof mongoose | null> => {
@@ -26,8 +24,14 @@ export const connectDB = async (): Promise<typeof mongoose | null> => {
     return dbPromise;
   }
 
-  const primaryUri = process.env.MONGO_URI || ATLAS_DEFAULT_URI;
+  const primaryUri = process.env.MONGO_URI;
   const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+
+  if (!primaryUri && isProduction) {
+    const errorMsg = '[MongoDB] FATAL: MONGO_URI environment variable is missing in production!';
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
 
   // Register disconnect listener (only once)
   if (mongoose.connection.listeners('disconnected').length === 0) {
@@ -39,32 +43,39 @@ export const connectDB = async (): Promise<typeof mongoose | null> => {
 
   dbPromise = (async () => {
     try {
-      const conn = await mongoose.connect(primaryUri, {
+      const uriToConnect = primaryUri || 'mongodb://127.0.0.1:27017/ai-crm';
+      const conn = await mongoose.connect(uriToConnect, {
         serverSelectionTimeoutMS: 10000, // 10s timeout for serverless cold starts
         connectTimeoutMS: 10000,        // 10s timeout for serverless cold starts
       });
       console.log('✅ MongoDB connected successfully.');
       return conn;
     } catch (primaryErr: any) {
-      console.warn('MongoDB Atlas connection warning:', primaryErr?.message);
+      console.error('[MongoDB Error] Connection failed:', primaryErr?.message || primaryErr);
       dbPromise = null;
 
-      // On Vercel/Production, localhost doesn't exist — skip local fallback
+      // On Vercel/Production, fail clearly and throw error so Vercel logs show exact cause
       if (isProduction) {
-        return null;
+        throw primaryErr;
       }
 
-      try {
-        const localFallbackUri = 'mongodb://127.0.0.1:27017/ai-crm';
-        const conn = await mongoose.connect(localFallbackUri, {
-          serverSelectionTimeoutMS: 1500,
-        });
-        console.log('Connected to local MongoDB fallback.');
-        return conn;
-      } catch (fallbackErr: any) {
-        console.error('MongoDB connection failed across all URIs:', fallbackErr?.message);
-        return null;
+      // Local fallback only if MONGO_URI was set but local dev DB is available
+      if (primaryUri) {
+        try {
+          console.log('[MongoDB] Attempting local MongoDB fallback...');
+          const localFallbackUri = 'mongodb://127.0.0.1:27017/ai-crm';
+          const conn = await mongoose.connect(localFallbackUri, {
+            serverSelectionTimeoutMS: 2000,
+          });
+          console.log('Connected to local MongoDB fallback.');
+          return conn;
+        } catch (fallbackErr: any) {
+          console.error('[MongoDB Error] Local fallback failed:', fallbackErr?.message);
+          return null;
+        }
       }
+
+      return null;
     }
   })();
 

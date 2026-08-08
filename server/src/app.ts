@@ -25,6 +25,7 @@ import notificationRoutes from './routes/notificationRoutes';
 import reportRoutes from './routes/reportRoutes';
 import profileRoutes from './routes/profileRoutes';
 import { apiLimiter, authLimiter, aiLimiter } from './middleware/rateLimiter';
+import { connectDB } from './config/db';
 
 const app = express();
 
@@ -81,6 +82,17 @@ app.use(cookieParser());
 // ─── NoSQL Injection Protection ───────────────────────────────────────────────
 // Sanitizes user-supplied data in req.body, req.query, req.params
 app.use(mongoSanitize({ replaceWith: '_' }));
+
+// ─── Database Readiness Middleware ───────────────────────────────────────────
+// Ensures Mongoose DB connection is active before processing API requests
+app.use('/api', async (_req: Request, _res: Response, next: NextFunction) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.error('[Database Middleware Error]', err);
+  }
+  next();
+});
 
 // ─── Rate Limiters ────────────────────────────────────────────────────────────
 

@@ -20,15 +20,13 @@ import type { IncomingMessage, ServerResponse } from 'http';
  *
  * Singleton DB connection pattern:
  *   Vercel reuses warm Lambda containers between requests.
- *   We track connection state so connectDB() only runs once per
- *   container lifetime (cold start), not on every request.
+ *   We ensure connectDB() is called on container initialization.
  *
  * Path Restoration:
  *   When Vercel rewrites /api/auth/login → /api/index, the Express app
- *   sees req.url as /api/index. We must restore the original URL from
- *   the x-matched-path or x-invoke-path headers that Vercel injects.
+ *   sees req.url as /api/index. We restore the original URL from
+ *   x-matched-path or x-invoke-path headers that Vercel injects.
  */
-let isConnected = false;
 let app: ((req: IncomingMessage, res: ServerResponse, next?: () => void) => void) | null = null;
 
 /**
@@ -41,7 +39,7 @@ async function bootstrap(): Promise<typeof app> {
     const { connectDB } = await import('../server/src/config/db');
     await connectDB();
   } catch (err) {
-    console.error('[Vercel] MongoDB connection failed:', err);
+    console.error('[Vercel Bootstrap Error] MongoDB connection failed:', err);
   }
 
   if (app) return app;
@@ -82,14 +80,12 @@ export default async function handler(
 
   // ── Restore original URL (Vercel rewrites /api/auth/login → /api/index) ──
   // Vercel injects the original path in x-matched-path or x-invoke-path headers.
-  // Without this fix Express would try to match the wrong route.
   const originalPath =
     (req.headers['x-matched-path'] as string) ||
     (req.headers['x-invoke-path'] as string) ||
     req.url;
 
   if (originalPath && originalPath !== req.url) {
-    // Restore the URL so Express routes correctly
     (req as any).url = originalPath;
   }
 
@@ -102,7 +98,6 @@ export default async function handler(
   }
 
   return new Promise<void>((resolve, reject) => {
-    // Express is a standard Node.js (req, res) handler — fully Vercel-compatible
     (expressApp as any)(req, res, (err: unknown) => {
       if (err) reject(err);
       else resolve();
