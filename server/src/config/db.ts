@@ -1,11 +1,14 @@
 import mongoose from 'mongoose';
 import dns from 'dns';
 
-// Set public DNS resolvers to ensure Node.js can resolve MongoDB Atlas SRV records in serverless/Windows
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
-} catch {
-  // Ignore if custom DNS setting is restricted
+// Set public DNS resolvers ONLY in local development (Node on Windows/Mac) to resolve Atlas SRV records.
+// On Vercel / AWS Lambda, skip custom DNS so Vercel VPC internal DNS resolves natively.
+if (!process.env.VERCEL && !process.env.NOW_REGION) {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch {
+    // Ignore if custom DNS setting is restricted
+  }
 }
 
 const ATLAS_DEFAULT_URI = 'mongodb+srv://Abhay:admin123@cluster0.kl2spzo.mongodb.net/ai-crm?retryWrites=true&w=majority';
@@ -37,8 +40,8 @@ export const connectDB = async (): Promise<typeof mongoose | null> => {
   dbPromise = (async () => {
     try {
       const conn = await mongoose.connect(primaryUri, {
-        serverSelectionTimeoutMS: 3000, // Fast 3-second selection timeout
-        connectTimeoutMS: 3000,        // Fast 3-second connection timeout
+        serverSelectionTimeoutMS: 10000, // 10s timeout for serverless cold starts
+        connectTimeoutMS: 10000,        // 10s timeout for serverless cold starts
       });
       console.log('✅ MongoDB connected successfully.');
       return conn;
@@ -46,7 +49,7 @@ export const connectDB = async (): Promise<typeof mongoose | null> => {
       console.warn('MongoDB Atlas connection warning:', primaryErr?.message);
       dbPromise = null;
 
-      // On Vercel/Production, localhost doesn't exist — skip local fallback to prevent 3s delay
+      // On Vercel/Production, localhost doesn't exist — skip local fallback
       if (isProduction) {
         return null;
       }

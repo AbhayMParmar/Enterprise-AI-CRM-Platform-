@@ -1,8 +1,10 @@
 import dns from 'dns';
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
-} catch {
-  // Ignore if restricted
+if (!process.env.VERCEL && !process.env.NOW_REGION) {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch {
+    // Ignore if restricted
+  }
 }
 
 import dotenv from 'dotenv';

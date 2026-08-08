@@ -56,9 +56,9 @@ const resetPasswordSchema = z.object({
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-    await connectDB();
-    if (mongoose.connection.readyState !== 1) {
-      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again.' });
+    const conn = await connectDB();
+    if (!conn && mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again in a moment.' });
       return;
     }
 
@@ -131,9 +131,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    await connectDB();
-    if (mongoose.connection.readyState !== 1) {
-      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again.' });
+    const conn = await connectDB();
+    if (!conn && mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again in a moment.' });
       return;
     }
 
@@ -278,9 +278,9 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
 
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
   try {
-    await connectDB();
-    if (mongoose.connection.readyState !== 1) {
-      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again.' });
+    const conn = await connectDB();
+    if (!conn && mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again in a moment.' });
       return;
     }
     const { credential, accessToken } = req.body;

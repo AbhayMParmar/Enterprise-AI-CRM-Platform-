@@ -2,11 +2,13 @@
 import dotenv from 'dotenv';
 import dns from 'dns';
 
-// Ensure Node.js can resolve MongoDB Atlas SRV records in all environments
-try {
-  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
-} catch {
-  // Ignore if restricted
+// Set public DNS resolvers ONLY in local environment
+if (!process.env.VERCEL && !process.env.NOW_REGION) {
+  try {
+    dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+  } catch {
+    // Ignore if restricted
+  }
 }
 
 dotenv.config();
