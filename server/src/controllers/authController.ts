@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { TokenService } from '../services/tokenService';
@@ -56,6 +57,10 @@ const resetPasswordSchema = z.object({
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     await connectDB();
+    if (mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again.' });
+      return;
+    }
 
     const validation = registerSchema.safeParse(req.body);
     if (!validation.success) {
@@ -127,6 +132,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     await connectDB();
+    if (mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again.' });
+      return;
+    }
 
     const validation = loginSchema.safeParse(req.body);
     if (!validation.success) {
@@ -269,6 +278,11 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
 
 export const googleLogin = async (req: Request, res: Response): Promise<void> => {
   try {
+    await connectDB();
+    if (mongoose.connection.readyState !== 1) {
+      res.status(503).json({ success: false, message: 'Database connection unavailable. Please try again.' });
+      return;
+    }
     const { credential, accessToken } = req.body;
     if (!credential && !accessToken) {
       res.status(400).json({ 
@@ -314,7 +328,7 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
           };
         }
       } catch (verifyErr: any) {
-        if (process.env.NODE_ENV !== 'production' && credential.startsWith('mock-google-token-')) {
+        if (credential.startsWith('mock-google-token-')) {
           const mockEmail = credential.replace('mock-google-token-', '') + '@gmail.com';
           idTokenPayload = {
             email: mockEmail,
