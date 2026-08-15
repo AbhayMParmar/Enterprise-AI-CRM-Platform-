@@ -24,6 +24,8 @@ import {
 import useAuthStore from '../store/authStore';
 import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
+import { useGoogleLogin } from '@react-oauth/google';
+import { Loader2 } from 'lucide-react';
 
 /* ─────────────────────────────────── types ─── */
 type Mode = 'login' | 'register';
@@ -402,33 +404,47 @@ function LoginForm({ onSwitchToRegister, onOpenCompanyModal, isGoogleConfigured,
     }
   };
 
-  const handleGoogle = () => {
-    const google = (window as any).google;
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '550705576930-cfe9sgcvvrbrk0qsm12l9eufbohp7skt.apps.googleusercontent.com';
-    if (google && google.accounts && google.accounts.id) {
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsGoogleLoading(true);
       try {
-        google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response: any) => {
-            if (response && response.credential) {
-              window.dispatchEvent(new CustomEvent('google-login-credential', { detail: response.credential }));
-            }
-          },
-          use_fedcm_for_prompt: true,
-          auto_select: false,
+        const res = await api.post('/auth/google-login', {
+          accessToken: tokenResponse.access_token,
         });
-        google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
-            console.log('[Google Auth] Prompt notice:', notification.getNotDisplayedReason?.());
-          }
-        });
-      } catch (err) {
-        console.warn('Google GSI prompt warning:', err);
+        login(res.data.accessToken, res.data.user);
+        const user = res.data.user;
+        if (user?.role === 'SUPER_ADMIN' || user?.role === 'SuperAdmin') {
+          success('Logged in via Google successfully!');
+          navigate('/super-admin', { replace: true });
+        } else if (res.data.requiresJoinCode || user?.accountStatus === 'PENDING_COMPANY') {
+          success('Please enter your company join code to continue.');
+          navigate('/join-company', { replace: true });
+        } else if (res.data.requiresPendingApproval || user?.accountStatus === 'PENDING_APPROVAL') {
+          navigate('/pending-approval', { replace: true });
+        } else if (user?.accountStatus === 'REJECTED') {
+          navigate('/rejected', { replace: true });
+        } else {
+          success('Logged in via Google successfully!');
+          const dest = from !== '/dashboard' ? from : '/dashboard';
+          navigate(dest, { replace: true });
+        }
+      } catch (err: any) {
+        if (err.response?.status === 403 && err.response?.data?.accountStatus === 'REJECTED') {
+          error('Your join request was rejected. Please contact the company admin.');
+          navigate('/rejected', { replace: true });
+        } else {
+          error(err.response?.data?.message || 'Google authentication failed.');
+        }
+      } finally {
+        setIsGoogleLoading(false);
       }
-    } else {
-      error('Google Sign-In is initializing. Please try again in a moment.');
-    }
-  };
+    },
+    onError: (errorResponse) => {
+      console.error('[Google OAuth Error]', errorResponse);
+      error('Google Sign-In was cancelled or failed.');
+      setIsGoogleLoading(false);
+    },
+  });
 
   // Forgot Password Handlers
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -522,24 +538,18 @@ function LoginForm({ onSwitchToRegister, onOpenCompanyModal, isGoogleConfigured,
           <>
             {/* Google */}
             <div className="relative w-full">
-              {isGoogleConfigured && (
-                <div
-                  id="google-signin-btn-desktop"
-                  className="absolute inset-0 opacity-0.01 z-10 w-full h-full overflow-hidden [&_iframe]:w-full [&_iframe]:h-full cursor-pointer"
-                />
-              )}
               <button
                 type="button"
-                onClick={handleGoogle}
+                onClick={() => loginWithGoogle()}
                 disabled={isGoogleLoading}
-                className="flex items-center justify-center gap-2.5 w-full py-2 px-4 border border-brand-border rounded-xl text-xs font-semibold text-brand-textPrimary hover:bg-brand-bg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2.5 w-full py-2.5 px-4 border border-brand-border rounded-xl text-xs font-semibold text-brand-textPrimary hover:bg-brand-bg transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs active:scale-[0.99]"
               >
                 {isGoogleLoading ? (
-                  <span className="w-4 h-4 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
                 ) : (
                   <GoogleIcon />
                 )}
-                Continue with Google
+                <span>{isGoogleLoading ? 'Connecting...' : 'Continue with Google'}</span>
               </button>
             </div>
 
@@ -738,33 +748,46 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured, active = true }: Re
   const navigate = useNavigate();
   const { success, error } = useToast();
 
-  const handleGoogle = () => {
-    const google = (window as any).google;
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '550705576930-cfe9sgcvvrbrk0qsm12l9eufbohp7skt.apps.googleusercontent.com';
-    if (google && google.accounts && google.accounts.id) {
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsGoogleLoading(true);
       try {
-        google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response: any) => {
-            if (response && response.credential) {
-              window.dispatchEvent(new CustomEvent('google-login-credential', { detail: response.credential }));
-            }
-          },
-          use_fedcm_for_prompt: true,
-          auto_select: false,
+        const res = await api.post('/auth/google-login', {
+          accessToken: tokenResponse.access_token,
         });
-        google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
-            console.log('[Google Auth] Prompt notice:', notification.getNotDisplayedReason?.());
-          }
-        });
-      } catch (err) {
-        console.warn('Google GSI prompt warning:', err);
+        login(res.data.accessToken, res.data.user);
+        const user = res.data.user;
+        if (user?.role === 'SUPER_ADMIN' || user?.role === 'SuperAdmin') {
+          success('Logged in via Google successfully!');
+          navigate('/super-admin', { replace: true });
+        } else if (res.data.requiresJoinCode || user?.accountStatus === 'PENDING_COMPANY') {
+          success('Please enter your company join code to continue.');
+          navigate('/join-company', { replace: true });
+        } else if (res.data.requiresPendingApproval || user?.accountStatus === 'PENDING_APPROVAL') {
+          navigate('/pending-approval', { replace: true });
+        } else if (user?.accountStatus === 'REJECTED') {
+          navigate('/rejected', { replace: true });
+        } else {
+          success('Logged in via Google successfully!');
+          navigate('/dashboard', { replace: true });
+        }
+      } catch (err: any) {
+        if (err.response?.status === 403 && err.response?.data?.accountStatus === 'REJECTED') {
+          error('Your join request was rejected. Please contact the company admin.');
+          navigate('/rejected', { replace: true });
+        } else {
+          error(err.response?.data?.message || 'Google authentication failed.');
+        }
+      } finally {
+        setIsGoogleLoading(false);
       }
-    } else {
-      error('Google Sign-In is initializing. Please try again in a moment.');
-    }
-  };
+    },
+    onError: (errorResponse) => {
+      console.error('[Google OAuth Error]', errorResponse);
+      error('Google Sign-In was cancelled or failed.');
+      setIsGoogleLoading(false);
+    },
+  });
 
   // Standard user form state
   const [name, setName] = useState('');
@@ -984,24 +1007,18 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured, active = true }: Re
           <>
             {/* Google */}
             <div className="relative w-full">
-              {isGoogleConfigured && (
-                <div
-                  id="google-signup-btn-desktop"
-                  className="absolute inset-0 opacity-0.01 z-10 w-full h-full overflow-hidden [&_iframe]:w-full [&_iframe]:h-full cursor-pointer"
-                />
-              )}
               <button
                 type="button"
-                onClick={handleGoogle}
+                onClick={() => loginWithGoogle()}
                 disabled={isGoogleLoading}
-                className="flex items-center justify-center gap-2.5 w-full py-2 px-4 border border-brand-border rounded-xl text-xs font-semibold text-brand-textPrimary hover:bg-brand-bg transition-all disabled:opacity-60"
+                className="flex items-center justify-center gap-2.5 w-full py-2.5 px-4 border border-brand-border rounded-xl text-xs font-semibold text-brand-textPrimary hover:bg-brand-bg transition-all disabled:opacity-60 disabled:cursor-not-allowed shadow-2xs active:scale-[0.99]"
               >
                 {isGoogleLoading ? (
-                  <span className="w-4 h-4 border-2 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
                 ) : (
                   <GoogleIcon />
                 )}
-                Sign up with Google
+                <span>{isGoogleLoading ? 'Connecting...' : 'Sign up with Google'}</span>
               </button>
             </div>
 
