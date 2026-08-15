@@ -226,14 +226,25 @@ export const UserManagement = () => {
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'SuperAdmin':
+      case 'SUPER_ADMIN':
         return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/80 dark:text-purple-300 dark:border-purple-800';
       case 'Admin':
+      case 'COMPANY_OWNER':
         return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800';
       case 'SalesManager':
+      case 'SALES_MANAGER':
         return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800';
       default:
         return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700';
     }
+  };
+
+  const getRoleLabel = (role: string) => {
+    if (role === 'Admin' || role === 'COMPANY_OWNER') return 'Company Owner';
+    if (role === 'SalesManager' || role === 'SALES_MANAGER') return 'Sales Manager';
+    if (role === 'SalesRep' || role === 'SALES_REPRESENTATIVE') return 'Sales Rep';
+    if (role === 'SuperAdmin' || role === 'SUPER_ADMIN') return 'Super Admin';
+    return role;
   };
 
   return (
@@ -554,7 +565,7 @@ export const UserManagement = () => {
 
       {/* Mobile User Detail Popup Modal (Mobile Devices Only) */}
       {selectedUserDetail && (
-        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full min-h-[400px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
             {/* Header with Close Icon (X): Modern Gradient Header */}
             <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
