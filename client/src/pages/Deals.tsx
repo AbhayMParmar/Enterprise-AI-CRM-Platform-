@@ -21,6 +21,7 @@ import { Card, CardBody } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useToast } from '../components/ui/Toast';
+import { CustomSelect } from '../components/ui/CustomSelect';
 import KanbanBoard, { DealItem, DealStage } from '../components/sales/KanbanBoard';
 
 export const Deals = () => {
@@ -458,20 +459,18 @@ export const Deals = () => {
                     required
                   />
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-brand-textPrimary select-none">Associated Customer</label>
-                    <select
-                      value={newCustomer}
-                      onChange={(e) => setNewCustomer(e.target.value)}
-                      required
-                      className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded-xl outline-none text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                    >
-                      <option value="" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Select Customer Contact...</option>
-                      {customers.map((c) => (
-                        <option key={c._id} value={c._id} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{c.name} {c.company ? `(${c.company})` : ''}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Associated Customer"
+                    value={newCustomer}
+                    onChange={setNewCustomer}
+                    required
+                    placeholder="Select Customer Contact..."
+                    options={customers.map((c) => ({
+                      value: c._id,
+                      label: c.name,
+                      sublabel: c.company ? `Company: ${c.company}` : c.email || undefined,
+                    }))}
+                  />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
@@ -483,21 +482,19 @@ export const Deals = () => {
                       required
                     />
 
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-brand-textPrimary select-none">Initial Stage</label>
-                      <select
-                        value={newStage}
-                        onChange={(e) => setNewStage(e.target.value as DealStage)}
-                        className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded-xl outline-none text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                      >
-                        <option value="Lead" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Lead In (10%)</option>
-                        <option value="Contacted" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Contacted (25%)</option>
-                        <option value="Proposal" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Proposal Sent (50%)</option>
-                        <option value="Negotiation" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Negotiation (75%)</option>
-                        <option value="Won" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Closed Won (100%)</option>
-                        <option value="Lost" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Closed Lost (0%)</option>
-                      </select>
-                    </div>
+                    <CustomSelect
+                      label="Initial Stage"
+                      value={newStage}
+                      onChange={(val) => setNewStage(val as DealStage)}
+                      options={[
+                        { value: 'Lead', label: 'Lead In (10%)' },
+                        { value: 'Contacted', label: 'Contacted (25%)' },
+                        { value: 'Proposal', label: 'Proposal Sent (50%)' },
+                        { value: 'Negotiation', label: 'Negotiation (75%)' },
+                        { value: 'Won', label: 'Closed Won (100%)' },
+                        { value: 'Lost', label: 'Closed Lost (0%)' },
+                      ]}
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -508,19 +505,20 @@ export const Deals = () => {
                       onChange={(e) => setNewCloseDate(e.target.value)}
                     />
 
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-semibold text-brand-textPrimary select-none">Assign Sales Rep</label>
-                      <select
-                        value={newAssignedTo}
-                        onChange={(e) => setNewAssignedTo(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded-xl outline-none text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                      >
-                        <option value="" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Unassigned</option>
-                        {teamMembers.map((m) => (
-                          <option key={m._id} value={m._id} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{m.name}</option>
-                        ))}
-                      </select>
-                    </div>
+                    <CustomSelect
+                      label="Assign Sales Rep"
+                      value={newAssignedTo}
+                      onChange={setNewAssignedTo}
+                      placeholder="Unassigned"
+                      options={[
+                        { value: '', label: 'Unassigned' },
+                        ...teamMembers.map((m) => ({
+                          value: m._id,
+                          label: m.name,
+                          sublabel: m.email,
+                        })),
+                      ]}
+                    />
                   </div>
                 </div>
 
