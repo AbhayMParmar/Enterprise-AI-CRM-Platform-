@@ -62,7 +62,7 @@ export class SubscriptionService {
    */
   public static getSubscriptionStatus(user: IUser): SubscriptionStatusResult {
     const now = new Date();
-    const sub = user.subscription || {};
+    const sub = (user.subscription || {}) as any;
 
     const plan = sub.plan || 'trial';
     const trialStartDate = sub.trialStartDate || user.createdAt || now;

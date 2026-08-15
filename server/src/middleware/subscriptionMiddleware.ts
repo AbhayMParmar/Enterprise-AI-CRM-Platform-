@@ -51,7 +51,7 @@ export const requireAIFeatureAccess = (featureKey?: string) => {
         return;
       }
 
-      const sub = company.subscription || {};
+      const sub = (company.subscription || {}) as any;
       const now = new Date();
 
       // Subscription Status & Expiry Check

@@ -644,7 +644,7 @@ export const getCompanySubscriptions = async (req: AuthenticatedRequest, res: Re
 
     const list = await Promise.all(
       companies.map(async (comp) => {
-        const sub = comp.subscription || {};
+        const sub = (comp.subscription || {}) as any;
         const subStatus = sub.status || 'trial';
 
         if (subStatus === 'active') totalActive++;
