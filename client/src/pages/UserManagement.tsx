@@ -30,6 +30,7 @@ interface UserRecord {
   avatar?: string;
   phone?: string;
   company?: string;
+  companyId?: string;
   jobTitle?: string;
   isVerified: boolean;
   lastLogin?: string;
@@ -409,6 +410,7 @@ export const UserManagement = () => {
                             type="checkbox"
                             disabled={isSuperAdminUser}
                             checked={selectedUserIds.includes(u._id)}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               if (e.target.checked) {
                                 setSelectedUserIds((prev) => [...prev, u._id]);
@@ -433,6 +435,7 @@ export const UserManagement = () => {
                         {canModifyUser && !isSuperAdminUser ? (
                           <select
                             value={u.role}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={(e) => handleRoleChange(u._id, e.target.value)}
                             className={`px-2 py-1 rounded-full text-[10px] font-bold border outline-none cursor-pointer ${getRoleBadgeStyle(
                               u.role
@@ -453,7 +456,10 @@ export const UserManagement = () => {
                       <td className="p-3">
                         <button
                           disabled={!canModifyUser || isSuperAdminUser}
-                          onClick={() => handleStatusToggle(u)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusToggle(u);
+                          }}
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all cursor-pointer ${
                             u.isVerified
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800 hover:opacity-90'
@@ -471,7 +477,8 @@ export const UserManagement = () => {
                         <div className="flex items-center justify-end gap-1">
                           {canModifyUser && (
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setTargetUser(u);
                                 setIsResetModalOpen(true);
                               }}
@@ -483,7 +490,10 @@ export const UserManagement = () => {
                           )}
                           {canModifyUser && !isSuperAdminUser && (
                             <button
-                              onClick={() => handleDeleteUser(u)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteUser(u);
+                              }}
                               title="Delete Account"
                               className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg text-slate-400 dark:text-rose-400 hover:text-rose-600 transition-all cursor-pointer"
                             >
