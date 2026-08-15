@@ -288,59 +288,59 @@ export const UserSubscriptionTable = () => {
       </CardBody>
       {/* Mobile User Mapping Detail Popup Modal (Mobile Devices Only) */}
       {/* Mobile User Mapping Popup Modal (Mobile Devices Only — Premium iOS Card Sheet) */}
+      {/* Mobile User Mapping Popup Modal (Mobile Devices Only — Premium iOS Card Sheet) */}
       {selectedUserMapping && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-4 z-[9999]">
           <div className="bg-white dark:bg-[#121212] rounded-3xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col animate-in slide-in-from-bottom-5 duration-200">
-            {/* Top iOS Sheet Drag Bar */}
-            <div className="w-10 h-1 bg-slate-200 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1" />
+            {/* Top iOS Sheet Drag Pill Bar — Tap to Close Modal */}
+            <button
+              type="button"
+              onClick={() => setSelectedUserMapping(null)}
+              title="Tap to Close Modal"
+              className="w-14 h-1.5 bg-slate-300 hover:bg-slate-400 dark:bg-zinc-600 dark:hover:bg-zinc-500 rounded-full mx-auto mt-2.5 mb-1 cursor-pointer transition-colors block"
+            />
 
             {/* Seamless Header */}
-            <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80">
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">User &amp; Plan Mapping</span>
-                <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-tight">{selectedUserMapping.name}</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{selectedUserMapping.email}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedUserMapping(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
+            <div className="px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-zinc-800/80">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">User &amp; Plan Mapping</span>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-tight truncate">{selectedUserMapping.name}</h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 truncate">{selectedUserMapping.email}</p>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-4 sm:p-5 space-y-4 text-xs">
+            {/* Modal Body — Vertically Stacked */}
+            <div className="p-4 sm:p-5 space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80">
-                <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Assigned Role</span>
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Assigned Role</span>
                   <span className="font-extrabold text-slate-900 dark:text-white text-xs block mt-1">
                     {selectedUserMapping.role === 'Admin' || selectedUserMapping.role === 'COMPANY_OWNER' ? 'Company Owner' : selectedUserMapping.role === 'SalesManager' || selectedUserMapping.role === 'SALES_MANAGER' ? 'Sales Manager' : selectedUserMapping.role === 'SalesRep' || selectedUserMapping.role === 'SALES_REPRESENTATIVE' ? 'Sales Rep' : selectedUserMapping.role}
                   </span>
                 </div>
-                <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Inherited Plan</span>
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Inherited Plan</span>
                   <span className="font-extrabold text-slate-900 dark:text-white text-xs block mt-1 uppercase">
                     {selectedUserMapping.inheritedSubscription?.plan || 'Free'}
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-2.5 bg-slate-50/50 dark:bg-zinc-900/40 p-3.5 rounded-2xl border border-slate-100 dark:border-zinc-800/60">
-                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
-                  <span className="text-slate-500 dark:text-zinc-400 font-medium">Assigned Company:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{selectedUserMapping.companyName}</span>
+              {/* Data Properties — Vertically Stacked List */}
+              <div className="space-y-3 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Assigned Company</span>
+                  <span className="font-extrabold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedUserMapping.companyName}</span>
                 </div>
-                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
-                  <span className="text-slate-500 dark:text-zinc-400 font-medium">AI Feature Access:</span>
-                  <span className={`font-bold ${selectedUserMapping.inheritedSubscription?.aiAccess ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {selectedUserMapping.inheritedSubscription?.aiAccess ? 'Enabled' : 'Disabled'}
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">AI Feature Access</span>
+                  <span className={`font-extrabold text-xs mt-0.5 ${selectedUserMapping.inheritedSubscription?.aiAccess ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+                    {selectedUserMapping.inheritedSubscription?.aiAccess ? 'Enabled Active' : 'Disabled'}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
-                  <span className="text-slate-500 dark:text-zinc-400 font-medium">AI Credit Usage:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">AI Credit Usage</span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">
                     {selectedUserMapping.inheritedSubscription?.currentAiUsage?.toLocaleString()} / {selectedUserMapping.inheritedSubscription?.aiQueryLimit?.toLocaleString()} Credits
                   </span>
                 </div>

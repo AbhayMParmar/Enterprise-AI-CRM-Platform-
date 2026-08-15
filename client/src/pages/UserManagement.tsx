@@ -573,73 +573,73 @@ export const UserManagement = () => {
       {selectedUserDetail && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-4 z-[9999]">
           <div className="bg-white dark:bg-[#121212] rounded-3xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col animate-in slide-in-from-bottom-5 duration-200">
-            {/* Top iOS Sheet Drag Bar */}
-            <div className="w-10 h-1 bg-slate-200 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1" />
+            {/* Top iOS Sheet Drag Pill Bar — Tap to Close Modal */}
+            <button
+              type="button"
+              onClick={() => setSelectedUserDetail(null)}
+              title="Tap to Close Modal"
+              className="w-14 h-1.5 bg-slate-300 hover:bg-slate-400 dark:bg-zinc-600 dark:hover:bg-zinc-500 rounded-full mx-auto mt-2.5 mb-1 cursor-pointer transition-colors block"
+            />
 
-            {/* User Profile Header (Seamless Dark/White Theme - No Navy Bar) */}
-            <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80">
-              <div className="flex items-center gap-3.5">
-                <img
-                  src={
-                    selectedUserDetail.avatar ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=09090b&color=fff&size=96`
-                  }
-                  alt={selectedUserDetail.name}
-                  className="w-12 h-12 rounded-full ring-2 ring-slate-100 dark:ring-zinc-800 object-cover"
-                />
-                <div>
-                  <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-tight">{selectedUserDetail.name}</h3>
-                  <p className="text-xs font-medium text-slate-500 dark:text-zinc-400 mt-0.5">{selectedUserDetail.email}</p>
-                </div>
+            {/* User Profile Header (Seamless Dark/White Theme - No Top Right X Button) */}
+            <div className="px-4 sm:px-5 py-3 flex items-center gap-3.5 border-b border-slate-100 dark:border-zinc-800/80">
+              <img
+                src={
+                  selectedUserDetail.avatar ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=09090b&color=fff&size=96`
+                }
+                alt={selectedUserDetail.name}
+                className="w-12 h-12 rounded-full ring-2 ring-slate-100 dark:ring-zinc-800 object-cover"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-tight truncate">{selectedUserDetail.name}</h3>
+                <p className="text-xs font-medium text-slate-500 dark:text-zinc-400 mt-0.5 truncate">{selectedUserDetail.email}</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedUserDetail(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-4 sm:p-5 space-y-4 text-xs">
-              {/* Role & Status Pill Grid */}
+            {/* Modal Body — Vertically Stacked Data Layout */}
+            <div className="p-4 sm:p-5 space-y-3.5 text-xs">
+              {/* Status & Role Pill Cards */}
               <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80">
-                <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Assigned Role</span>
-                  <span className={`inline-block mt-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getRoleBadgeStyle(selectedUserDetail.role)}`}>
-                    {getRoleLabel(selectedUserDetail.role)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Status</span>
-                  <span className={`inline-block mt-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
-                    selectedUserDetail.isVerified ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300'
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Status</span>
+                  <span className={`inline-block mt-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold border self-start ${
+                    selectedUserDetail.isVerified
+                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
+                      : 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-800'
                   }`}>
                     {selectedUserDetail.isVerified ? 'Active Verified' : 'Suspended'}
                   </span>
                 </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Assigned Role</span>
+                  <span className={`inline-block mt-1.5 px-3 py-1 rounded-full text-[11px] font-bold border self-start ${getRoleBadgeStyle(selectedUserDetail.role)}`}>
+                    {getRoleLabel(selectedUserDetail.role)}
+                  </span>
+                </div>
               </div>
 
-              {/* Data Properties */}
-              <div className="space-y-2.5 bg-slate-50/50 dark:bg-zinc-900/40 p-3.5 rounded-2xl border border-slate-100 dark:border-zinc-800/60">
-                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
-                  <span className="text-slate-500 dark:text-zinc-400 font-medium">User ID:</span>
-                  <span className="font-mono font-medium text-slate-800 dark:text-zinc-200 text-[11px]">{selectedUserDetail._id}</span>
+              {/* Data Properties — Vertically Stacked List */}
+              <div className="space-y-3 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">User ID</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-zinc-100 text-[11px] mt-0.5 break-all">{selectedUserDetail._id}</span>
                 </div>
-                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
-                  <span className="text-slate-500 dark:text-zinc-400 font-medium">Company ID:</span>
-                  <span className="font-mono font-medium text-slate-800 dark:text-zinc-200 text-[11px]">{selectedUserDetail.companyId || 'N/A'}</span>
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Company ID</span>
+                  <span className="font-mono font-semibold text-slate-900 dark:text-zinc-100 text-[11px] mt-0.5 break-all">{selectedUserDetail.companyId || 'N/A'}</span>
                 </div>
-                <div className="flex justify-between items-center py-0.5">
-                  <span className="text-slate-500 dark:text-zinc-400 font-medium">Joined Date:</span>
-                  <span className="font-semibold text-slate-800 dark:text-zinc-200">
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Joined Date</span>
+                  <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">
                     {new Date(selectedUserDetail.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
               </div>
 
-              {/* Modal Footer Buttons */}
+              {/* Modal Footer Action Buttons */}
               <div className="pt-2 flex justify-end gap-2.5">
                 <Button variant="outline" size="sm" onClick={() => setSelectedUserDetail(null)} className="rounded-xl px-4">
                   Close

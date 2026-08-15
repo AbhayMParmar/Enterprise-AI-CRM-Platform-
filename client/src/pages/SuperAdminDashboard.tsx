@@ -576,25 +576,34 @@ export const SuperAdminDashboard = () => {
       {selectedCompanyId && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[90vh] min-h-[480px] shadow-2xl flex flex-col overflow-hidden relative">
-            {/* Top iOS Sheet Drag Bar */}
-            <div className="w-10 h-1 bg-slate-200 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 sm:hidden" />
+            {/* Top iOS Sheet Drag Pill Bar — Tap to Close Modal */}
+            <button
+              type="button"
+              onClick={() => setSelectedCompanyId(null)}
+              title="Tap to Close Modal"
+              className="w-14 h-1.5 bg-slate-300 hover:bg-slate-400 dark:bg-zinc-600 dark:hover:bg-zinc-500 rounded-full mx-auto mt-2.5 mb-1 cursor-pointer transition-colors block"
+            />
 
             {/* Header: Seamless Light/Dark Theme */}
-            <div className="p-4 sm:p-5 pb-3 bg-white dark:bg-[#121212] flex items-start justify-between border-b border-slate-100 dark:border-zinc-800/80">
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">Company Workspace Inspection</span>
-                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">{companyDetail?.company?.companyName || 'Company Inspection'}</h2>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                  ID: <span className="font-mono text-[11px]">{selectedCompanyId}</span> • Status: <strong className="text-emerald-600 dark:text-emerald-400 uppercase font-bold">{companyDetail?.company?.status}</strong>
-                </p>
+            <div className="px-4 sm:px-5 pb-3 bg-white dark:bg-[#121212] border-b border-slate-100 dark:border-zinc-800/80">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">Company Workspace Inspection</span>
+              <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">{companyDetail?.company?.companyName || 'Company Inspection'}</h2>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-zinc-400 mt-1">
+                <span>ID: <span className="font-mono text-[11px] text-slate-700 dark:text-zinc-300">{selectedCompanyId}</span></span>
+                <span>•</span>
+                <span className="flex items-center gap-1.5">
+                  <span>Status:</span>
+                  <strong className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black border ${
+                    companyDetail?.company?.status?.toLowerCase() === 'active'
+                      ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800'
+                      : companyDetail?.company?.status?.toLowerCase() === 'suspended'
+                      ? 'text-rose-700 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800'
+                      : 'text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800'
+                  }`}>
+                    {companyDetail?.company?.status || 'UNKNOWN'}
+                  </strong>
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedCompanyId(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
-              >
-                <XCircle size={18} />
-              </button>
             </div>
 
             <div className="flex items-center gap-1 p-2 bg-slate-100 dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 overflow-x-auto">
