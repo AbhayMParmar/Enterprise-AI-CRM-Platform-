@@ -114,8 +114,8 @@ export const UserSubscriptionTable = () => {
         </div>
 
         {/* User Mapping Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700 dark:text-zinc-300">
+        <div className="overflow-x-auto w-full scrollbar-thin">
+          <table className="w-full min-w-[750px] text-left text-xs text-slate-700 dark:text-zinc-300">
             <thead className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100 dark:border-zinc-800">
               <tr>
                 <th className="p-3.5">User Details</th>

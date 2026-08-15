@@ -106,6 +106,27 @@ export const CompanySubscriptionTable = () => {
     e.preventDefault();
     if (!selectedComp) return;
     setIsSaving(true);
+
+    // Optimistically update local subscriptions array
+    setSubscriptions((prev) =>
+      prev.map((item) =>
+        item.id === selectedComp.id
+          ? {
+              ...item,
+              subscription: {
+                ...item.subscription,
+                plan: newPlan,
+                status: newStatus,
+                billingCycle: newCycle,
+                amountPaid: newAmount,
+              },
+            }
+          : item
+      )
+    );
+    success(`Subscription for ${selectedComp.companyName} updated to ${newPlan}`);
+    setSelectedComp(null);
+
     try {
       await api.post(`/companies/${selectedComp.id}/subscription`, {
         plan: newPlan,
@@ -113,11 +134,9 @@ export const CompanySubscriptionTable = () => {
         billingCycle: newCycle,
         amountPaid: newAmount,
       });
-      success(`Subscription for ${selectedComp.companyName} updated to ${newPlan}`);
-      setSelectedComp(null);
-      fetchSubscriptions();
     } catch (err: any) {
       error(err.response?.data?.message || 'Failed to update subscription');
+      fetchSubscriptions();
     } finally {
       setIsSaving(false);
     }
@@ -217,8 +236,8 @@ export const CompanySubscriptionTable = () => {
           </div>
 
           {/* Subscriptions Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700 dark:text-zinc-300">
+          <div className="overflow-x-auto w-full scrollbar-thin">
+            <table className="w-full min-w-[750px] text-left text-xs text-slate-700 dark:text-zinc-300">
               <thead className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100 dark:border-zinc-800">
                 <tr>
                   <th className="p-3.5">Company &amp; Owner</th>

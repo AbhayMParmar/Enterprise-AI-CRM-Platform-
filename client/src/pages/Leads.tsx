@@ -380,8 +380,8 @@ export const Leads = () => {
 
       {/* CRM Leads grid */}
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto w-full scrollbar-thin">
+          <table className="w-full min-w-[700px] text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-brand-border text-xs font-semibold text-brand-textSecondary uppercase tracking-wider">
                 <th className="px-6 py-4">Client Detail</th>

@@ -116,15 +116,22 @@ export const SuperAdminDashboard = () => {
   }, [statusFilter, searchQuery, activeMainTab]);
 
   const handleUpdateStatus = async (id: string, newStatus: string, reason?: string) => {
+    // Optimistically update local state immediately so table does NOT flicker or show loading spinner
+    setCompanies((prev) =>
+      prev.map((c) => (c.id === id || (c as any)._id === id ? { ...c, status: newStatus as any } : c))
+    );
+    if (companyDetail && (companyDetail.company.id === id || (companyDetail.company as any)._id === id)) {
+      setCompanyDetail((prev: any) =>
+        prev ? { ...prev, company: { ...prev.company, status: newStatus } } : null
+      );
+    }
+    success(`Company status updated to ${newStatus}`);
+
     try {
       await api.patch(`/companies/${id}/status`, { status: newStatus, rejectionReason: reason });
-      success(`Company status updated to ${newStatus}`);
-      fetchCompanyData();
-      if (selectedCompanyId === id) {
-        openCompanyDetail(id);
-      }
     } catch (err: any) {
       error(err.response?.data?.message || 'Failed to update status');
+      fetchCompanyData();
     }
   };
 
@@ -327,8 +334,8 @@ export const SuperAdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-700 dark:text-zinc-300">
+              <div className="overflow-x-auto w-full scrollbar-thin">
+                <table className="w-full min-w-[750px] text-left text-xs text-slate-700 dark:text-zinc-300">
                   <thead className="bg-slate-50 dark:bg-zinc-900 text-slate-500 dark:text-zinc-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100 dark:border-zinc-800">
                     <tr>
                       <th className="p-3.5 font-bold">Company Name</th>

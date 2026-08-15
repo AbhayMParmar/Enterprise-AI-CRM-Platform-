@@ -224,6 +224,12 @@ export const DashboardLayout = () => {
         </nav>
 
         <div className="p-4 border-t border-slate-100 dark:border-zinc-800 flex flex-col gap-3 flex-shrink-0">
+          {/* Theme Toggle row in Mobile Drawer */}
+          <div className="flex items-center justify-between px-1 py-1 rounded-xl bg-slate-50 dark:bg-zinc-800/60">
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">Theme</span>
+            <ThemeToggle />
+          </div>
+
           <div className="flex items-center gap-3">
             <img
               src={avatarSrc}
@@ -251,19 +257,24 @@ export const DashboardLayout = () => {
 
       {/* ── Main Workspace ─────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Matte Finish Header Navbar */}
-        <header className="h-16 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-zinc-800/80 px-4 sm:px-6 flex items-center justify-between z-20 flex-shrink-0 transition-colors duration-200">
+        {/* iOS Glassmorphism Header Navbar */}
+        <header className="h-16 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-zinc-800/60 px-4 sm:px-6 flex items-center justify-between z-20 flex-shrink-0 transition-all duration-200 shadow-2xs">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open mobile menu"
-              className="md:hidden text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800"
+              className="md:hidden text-slate-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-white p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-95 cursor-pointer"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white hidden md:block tracking-tight">
-              {getPageTitle()}
-            </h2>
+            <div className="flex items-center gap-2">
+              <div className="md:hidden">
+                <Logo size="sm" showText={false} />
+              </div>
+              <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+                {getPageTitle()}
+              </h2>
+            </div>
           </div>
 
           <div className="flex items-center gap-2.5 sm:gap-3.5">
@@ -280,14 +291,16 @@ export const DashboardLayout = () => {
             {/* Notification Bell */}
             <NotificationBell />
 
-            {/* Dark / Light Mode Toggle Button */}
-            <ThemeToggle />
+            {/* Dark / Light Mode Toggle Button (Hidden on Mobile Header) */}
+            <div className="hidden sm:flex items-center">
+              <ThemeToggle />
+            </div>
 
-            {/* Workspace Pill: RaviRaj */}
-            <div className="hidden md:flex items-center gap-1.5 bg-blue-50 dark:bg-zinc-800/90 border border-blue-200/80 dark:border-zinc-700 px-3 py-1.5 rounded-full text-xs font-bold text-blue-700 dark:text-zinc-200 shadow-2xs">
+            {/* Workspace Pill */}
+            <div className="hidden md:flex items-center gap-1.5 bg-blue-50/80 dark:bg-zinc-800/90 border border-blue-200/70 dark:border-zinc-700 px-3 py-1.5 rounded-full text-xs font-bold text-blue-700 dark:text-zinc-200 shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
               <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Workspace: {user?.companyName || 'RaviRaj'}</span>
+              <span>Workspace: {user?.companyName || 'Enterprise CRM'}</span>
             </div>
           </div>
         </header>

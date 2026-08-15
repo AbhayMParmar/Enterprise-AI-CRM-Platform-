@@ -307,7 +307,7 @@ export const UserManagement = () => {
           </Button>
         </CardHeader>
 
-        <CardBody className="p-0 overflow-x-auto">
+        <CardBody className="p-0 overflow-x-auto w-full scrollbar-thin">
           {isLoading ? (
             <div className="p-8 text-center text-xs text-slate-400 dark:text-zinc-500 italic flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-brand-primary" />
@@ -316,7 +316,7 @@ export const UserManagement = () => {
           ) : users.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-400 dark:text-zinc-500 italic">No users found matching current filters.</div>
           ) : (
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full min-w-[700px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50 dark:bg-[#18181B] border-b border-brand-border dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-semibold">
                   {currentUser?.role === 'SuperAdmin' && (
