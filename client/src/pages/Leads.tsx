@@ -341,14 +341,14 @@ export const Leads = () => {
             />
           </div>
 
-          <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
             {/* Status Filters */}
             <div className="flex items-center gap-2 text-xs w-full sm:w-auto">
-              <span className="text-brand-textSecondary font-semibold flex items-center gap-1.5"><Filter className="w-3.5 h-3.5" /> Pipeline:</span>
+              <span className="text-brand-textSecondary dark:text-zinc-400 font-semibold flex items-center gap-1.5 shrink-0"><Filter className="w-3.5 h-3.5" /> Pipeline:</span>
               <select 
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 bg-brand-bg border border-brand-border rounded-lg outline-none cursor-pointer text-brand-textPrimary text-xs focus:ring-1 focus:ring-brand-primary"
+                className="px-3 py-2 bg-brand-bg dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-xl outline-none cursor-pointer text-brand-textPrimary dark:text-white text-xs w-full sm:w-auto"
               >
                 <option value="All">All Stages</option>
                 <option value="Lead">Lead</option>
@@ -362,11 +362,11 @@ export const Leads = () => {
 
             {/* Sales Rep filters */}
             <div className="flex items-center gap-2 text-xs w-full sm:w-auto">
-              <span className="text-brand-textSecondary font-semibold">Rep:</span>
+              <span className="text-brand-textSecondary dark:text-zinc-400 font-semibold shrink-0">Rep:</span>
               <select 
                 value={assignmentFilter}
                 onChange={(e) => setAssignmentFilter(e.target.value)}
-                className="px-3 py-1.5 bg-brand-bg border border-brand-border rounded-lg outline-none cursor-pointer text-brand-textPrimary text-xs focus:ring-1 focus:ring-brand-primary"
+                className="px-3 py-2 bg-brand-bg dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-xl outline-none cursor-pointer text-brand-textPrimary dark:text-white text-xs w-full sm:w-auto"
               >
                 <option value="All">All Reps</option>
                 {teamMembers.map(m => (

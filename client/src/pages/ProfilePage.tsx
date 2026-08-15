@@ -488,8 +488,8 @@ export const ProfilePage: React.FC = () => {
       transition={{ type: 'spring', damping: 25, stiffness: 220 }}
       className="min-h-screen bg-[#F8FAFC] dark:bg-[#09090B] p-3 sm:p-6 text-slate-800 dark:text-zinc-100 font-sans max-w-5xl mx-auto selection:bg-blue-500 selection:text-white"
     >
-      {/* ── Page Header: Back Button ──────────────────────────────────────────── */}
-      <div className="mb-4">
+      {/* ── Page Header: Back Button (Hidden on Mobile) ──────────────────────────── */}
+      <div className="hidden sm:block mb-4">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -762,21 +762,21 @@ export const ProfilePage: React.FC = () => {
               </div>
 
               {/* 2FA UI-Ready Placeholder */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#18181B] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#18181B] border border-slate-200/80 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"><Smartphone className="w-5 h-5" /></div>
+                  <div className="p-2.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shrink-0"><Smartphone className="w-5 h-5" /></div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">Two-Factor Authentication (2FA)</h4>
                     <p className="text-[11px] text-slate-500 dark:text-zinc-400">Add an extra layer of security via OTP authenticator apps.</p>
                   </div>
                 </div>
-                <span className="px-2.5 py-1 rounded-full bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-xs font-bold">UI Ready</span>
+                <span className="px-2.5 py-1 rounded-full bg-slate-200 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 text-xs font-bold w-fit shrink-0">UI Ready</span>
               </div>
 
               {/* Logout All Devices */}
-              <div className="p-4 rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 flex items-center justify-between">
+              <div className="p-4 rounded-xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400"><LogOut className="w-5 h-5" /></div>
+                  <div className="p-2.5 rounded-lg bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 shrink-0"><LogOut className="w-5 h-5" /></div>
                   <div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white">Active Sessions</h4>
                     <p className="text-[11px] text-slate-500 dark:text-zinc-400">Sign out of all mobile &amp; desktop browser sessions.</p>
@@ -786,7 +786,7 @@ export const ProfilePage: React.FC = () => {
                   type="button"
                   onClick={handleLogoutAll}
                   disabled={isLoggingOutAll}
-                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                  className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50 w-full sm:w-auto shrink-0"
                 >
                   {isLoggingOutAll ? 'Revoking...' : 'Logout All Devices'}
                 </button>

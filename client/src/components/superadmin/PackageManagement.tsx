@@ -238,8 +238,8 @@ export const PackageManagement = () => {
                   : 'border-slate-300 dark:border-zinc-800 opacity-60'
               }`}
             >
-              <CardHeader className="p-5 border-b border-slate-100 dark:border-zinc-800 pb-4">
-                <div className="flex items-center justify-between gap-2 mb-3">
+              <CardHeader className="p-4 sm:p-5 border-b border-slate-100 dark:border-zinc-800 flex flex-col gap-2.5">
+                <div className="flex items-center justify-between gap-2">
                   <span
                     className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
                       pkg.status === 'ACTIVE'
@@ -254,11 +254,13 @@ export const PackageManagement = () => {
                   <span className="text-[11px] font-bold text-slate-400 dark:text-zinc-500">Order: #{pkg.displayOrder}</span>
                 </div>
 
-                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{pkg.name}</h3>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 min-h-[32px] mt-1 line-clamp-2 leading-relaxed">{pkg.description}</p>
+                <div className="flex flex-col gap-1">
+                  <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug">{pkg.name}</h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 leading-relaxed">{pkg.description}</p>
+                </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800 flex flex-col gap-1">
-                  <div className="flex items-baseline gap-1.5">
+                <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex flex-col gap-0.5">
+                  <div className="flex items-baseline gap-1.5 flex-wrap">
                     <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                       ₹{pkg.monthlyPrice.toLocaleString()}
                     </span>

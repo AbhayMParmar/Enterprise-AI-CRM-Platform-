@@ -301,7 +301,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mb-4"
+              className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white mb-3 leading-snug sm:leading-tight"
             >
               Supercharge your sales team with AI.
             </motion.h2>

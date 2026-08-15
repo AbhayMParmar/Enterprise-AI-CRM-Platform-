@@ -626,7 +626,7 @@ export const CompanySettings = () => {
           </div>
 
           {/* ── EXACT SEQUENCE TABS: All, Pending, Approved, Rejected ── */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto scrollbar-hide">
+          <div className="grid grid-cols-4 sm:flex items-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-full sm:w-auto overflow-x-auto scrollbar-hide">
             {tabs.map((tab) => {
               const isSelected = activeTab === tab.key;
               return (
@@ -634,7 +634,7 @@ export const CompanySettings = () => {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center gap-1.5 whitespace-nowrap
+                  className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 sm:gap-1.5 whitespace-nowrap
                     ${
                       isSelected
                         ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
