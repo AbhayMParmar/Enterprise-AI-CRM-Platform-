@@ -64,16 +64,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      console.error(`[CORS] Blocked request from origin: ${origin}`);   // ← ADDED: visibility
-      const corsError: any = new Error(`CORS: origin ${origin} not allowed`);
-      corsError.status = 403;   // ← ADDED: so it returns 403, not a bare 500
-      callback(corsError);
-    },
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Company-Id'],
