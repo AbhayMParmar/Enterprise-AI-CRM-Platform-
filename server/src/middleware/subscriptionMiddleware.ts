@@ -27,25 +27,23 @@ export const requireAIFeatureAccess = (featureKey?: string) => {
 
       const activeCompanyId = req.companyId || req.user.companyId;
       if (!activeCompanyId) {
-        res.status(403).json({
-          success: false,
-          message: 'Company workspace required for AI features. Please join or create a company.',
-          code: 'COMPANY_REQUIRED',
-        });
+        // Individual or newly registered user without linked company ID — allow trial AI access
+        next();
         return;
       }
 
       const company = await Company.findById(activeCompanyId);
       if (!company) {
-        res.status(404).json({ success: false, message: 'Company workspace not found' });
+        // Company record not found — allow trial access
+        next();
         return;
       }
 
-      // Check company status
-      if (company.status !== 'ACTIVE') {
+      // Check company status: Only restrict if company is explicitly SUSPENDED or REJECTED
+      if (company.status === 'SUSPENDED' || company.status === 'REJECTED') {
         res.status(403).json({
           success: false,
-          message: `Company workspace is currently ${company.status.toLowerCase()}. Access is restricted.`,
+          message: `Company workspace is currently ${company.status.toLowerCase()}. AI features are restricted.`,
           code: 'COMPANY_INACTIVE',
         });
         return;
@@ -54,7 +52,7 @@ export const requireAIFeatureAccess = (featureKey?: string) => {
       const sub = (company.subscription || {}) as any;
       const now = new Date();
 
-      // Subscription Status & Expiry Check
+      // Subscription Expiry Check
       let isExpired = false;
       if (sub.status === 'expired' || sub.status === 'suspended' || sub.status === 'cancelled') {
         isExpired = true;
@@ -65,16 +63,15 @@ export const requireAIFeatureAccess = (featureKey?: string) => {
       }
 
       if (isExpired) {
-        // Update status in DB
         company.subscription.status = 'expired';
         await company.save();
 
         res.status(403).json({
           success: false,
-          message: 'Your company subscription or trial has expired. Please ask your Company Owner to upgrade the plan.',
+          message: 'Your company trial or subscription has expired. Please upgrade your plan to continue using AI features.',
           code: 'SUBSCRIPTION_EXPIRED',
           subscription: {
-            plan: sub.plan,
+            plan: sub.plan || 'trial',
             status: 'expired',
             aiAccess: false,
           },
@@ -86,7 +83,7 @@ export const requireAIFeatureAccess = (featureKey?: string) => {
       let pkg = null;
       if (sub.packageId) {
         pkg = await Package.findById(sub.packageId);
-      } else {
+      } else if (sub.plan) {
         pkg = await Package.findOne({ slug: sub.plan });
       }
 
@@ -112,7 +109,7 @@ export const requireAIFeatureAccess = (featureKey?: string) => {
       if (currentUsage >= aiQueryLimit) {
         res.status(403).json({
           success: false,
-          message: `Monthly AI credit quota reached (${currentUsage}/${aiQueryLimit} queries used). Upgrade your company package for higher limits.`,
+          message: `Monthly AI credit quota reached (${currentUsage}/${aiQueryLimit} queries used). Upgrade your package for higher limits.`,
           code: 'AI_QUOTA_EXCEEDED',
           usage: currentUsage,
           limit: aiQueryLimit,
