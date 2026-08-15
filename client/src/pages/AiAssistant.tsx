@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Paperclip,
   X,
+  Trash2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -56,10 +57,46 @@ export const AiAssistant = () => {
 
   const isExpired = user?.subscription?.status === 'expired' || user?.subscription?.aiAccess === false;
 
-  /* Copilot */
-  const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'Hello! I am your AI Sales Copilot powered by Groq LLaMA-3. How can I help you qualify leads, handle objections, or close deals today?' },
-  ]);
+  const DEFAULT_INITIAL_MSG: Msg = {
+    role: 'assistant',
+    content: 'Hello! I am your AI Sales Copilot powered by Groq LLaMA-3. How can I help you qualify leads, handle objections, or close deals today?',
+  };
+
+  const STORAGE_KEY = `ai_copilot_chat_history_${user?.id || 'guest'}`;
+
+  /* Copilot Persistent Chat History */
+  const [messages, setMessages] = useState<Msg[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+    return [DEFAULT_INITIAL_MSG];
+  });
+
+  // Sync chat history to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch {
+      // Ignore quota errors
+    }
+  }, [messages, STORAGE_KEY]);
+
+  const handleClearHistory = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
+    setMessages([DEFAULT_INITIAL_MSG]);
+    success('Chat history cleared. Started a new AI conversation!');
+  };
+
   const [inputPrompt, setInputPrompt]     = useState('');
   const [isCopilotLoading, setCopilotLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -325,9 +362,21 @@ export const AiAssistant = () => {
                     <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 leading-tight">Ask anything about pipeline, objections &amp; closing</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-[10px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400 hidden xs:inline">Live</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 hidden sm:flex">
+                    <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-[10px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400">Live</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearHistory}
+                    className="text-[10px] sm:text-xs font-bold gap-1.5 px-2.5 py-1 rounded-xl border-slate-200 dark:border-zinc-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-700 dark:text-zinc-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+                    title="Clear Chat History & Start New Session"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden xs:inline">Clear History</span>
+                  </Button>
                 </div>
               </div>
 
