@@ -606,7 +606,8 @@ export const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-1 p-2 bg-slate-100 dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 overflow-x-auto">
+            {/* 7-Tab Bar (Fully Responsive Horizontal Scroll Bar with Touch Panning) */}
+            <div className="flex items-center gap-1.5 p-2 bg-slate-100 dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800 overflow-x-auto no-scrollbar scrollbar-none touch-pan-x shrink-0 select-none flex-nowrap">
               {[
                 { id: 'overview', label: 'Overview' },
                 { id: 'users', label: 'Users' },
@@ -620,7 +621,7 @@ export const SuperAdminDashboard = () => {
                   key={tb.id}
                   type="button"
                   onClick={() => setActiveModalTab(tb.id)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all cursor-pointer select-none ${
                     activeModalTab === tb.id
                       ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs'
                       : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
@@ -631,6 +632,7 @@ export const SuperAdminDashboard = () => {
               ))}
             </div>
 
+            {/* Modal Body Content (Fully Responsive Mobile & Desktop Layouts) */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs min-h-[340px] flex-1">
               {isDetailLoading ? (
                 <div className="p-12 text-center text-slate-400 dark:text-zinc-500">
@@ -640,53 +642,55 @@ export const SuperAdminDashboard = () => {
               ) : (
                 <>
                   {activeModalTab === 'overview' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2 text-slate-800 dark:text-zinc-200">
-                        <h4 className="font-bold text-slate-900 dark:text-white">Company Metadata</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      <div className="p-4 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2 text-slate-800 dark:text-zinc-200 border border-slate-100 dark:border-zinc-800">
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200/60 dark:border-zinc-700 pb-1.5">Company Metadata</h4>
                         <div><strong>Email:</strong> {companyDetail?.company?.businessEmail}</div>
                         <div><strong>Phone:</strong> {companyDetail?.company?.phone || 'N/A'}</div>
-                        <div><strong>Industry:</strong> {companyDetail?.company?.industry}</div>
-                        <div><strong>Size:</strong> {companyDetail?.company?.companySize}</div>
+                        <div><strong>Industry:</strong> {companyDetail?.company?.industry || 'N/A'}</div>
+                        <div><strong>Company Size:</strong> {companyDetail?.company?.companySize || 'N/A'}</div>
                       </div>
 
-                      <div className="p-4 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2 text-slate-800 dark:text-zinc-200">
-                        <h4 className="font-bold text-slate-900 dark:text-white">Company Owner</h4>
-                        <div><strong>Owner Name:</strong> {companyDetail?.company?.owner?.name}</div>
-                        <div><strong>Owner Email:</strong> {companyDetail?.company?.owner?.email}</div>
+                      <div className="p-4 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2 text-slate-800 dark:text-zinc-200 border border-slate-100 dark:border-zinc-800">
+                        <h4 className="font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200/60 dark:border-zinc-700 pb-1.5">Company Owner</h4>
+                        <div><strong>Owner Name:</strong> {companyDetail?.company?.owner?.name || 'N/A'}</div>
+                        <div><strong>Owner Email:</strong> {companyDetail?.company?.owner?.email || 'N/A'}</div>
                       </div>
                     </div>
                   )}
 
                   {activeModalTab === 'users' && (
-                    <table className="w-full text-left text-slate-700 dark:text-zinc-300">
-                      <thead className="bg-slate-100 dark:bg-zinc-800 font-bold uppercase text-[10px]">
-                        <tr>
-                          <th className="p-2">Name</th>
-                          <th className="p-2">Email</th>
-                          <th className="p-2">Role</th>
-                          <th className="p-2">Inherited Plan</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-                        {companyDetail?.users?.map((u: any) => (
-                          <tr key={u.id}>
-                            <td className="p-2 font-bold text-slate-900 dark:text-white">{u.name}</td>
-                            <td className="p-2">{u.email}</td>
-                            <td className="p-2 font-semibold text-blue-600 dark:text-blue-400">{u.role}</td>
-                            <td className="p-2 font-bold uppercase">{companyDetail?.company?.subscription?.plan}</td>
+                    <div className="overflow-x-auto w-full scrollbar-thin rounded-xl border border-slate-100 dark:border-zinc-800">
+                      <table className="w-full min-w-[500px] text-left text-slate-700 dark:text-zinc-300">
+                        <thead className="bg-slate-100 dark:bg-zinc-800 font-bold uppercase text-[10px] text-slate-500 dark:text-zinc-400">
+                          <tr>
+                            <th className="p-2.5">Name</th>
+                            <th className="p-2.5">Email</th>
+                            <th className="p-2.5">Role</th>
+                            <th className="p-2.5">Inherited Plan</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
+                          {companyDetail?.users?.map((u: any) => (
+                            <tr key={u.id}>
+                              <td className="p-2.5 font-bold text-slate-900 dark:text-white">{u.name}</td>
+                              <td className="p-2.5">{u.email}</td>
+                              <td className="p-2.5 font-semibold text-blue-600 dark:text-blue-400">{u.role}</td>
+                              <td className="p-2.5 font-bold uppercase">{companyDetail?.company?.subscription?.plan}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
 
                   {activeModalTab === 'subscription' && (
-                    <div className="p-4 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2 text-slate-800 dark:text-zinc-200">
-                      <h4 className="font-bold text-slate-900 dark:text-white">Active Company Subscription</h4>
-                      <div>Package: <strong className="uppercase text-blue-600 dark:text-blue-400">{companyDetail?.company?.subscription?.plan}</strong></div>
-                      <div>Status: <strong className="capitalize">{companyDetail?.company?.subscription?.status}</strong></div>
-                      <div>Billing Cycle: <strong className="capitalize">{companyDetail?.company?.subscription?.billingCycle || 'monthly'}</strong></div>
-                      <div>AI Credits Used: <strong>{companyDetail?.company?.subscription?.currentAiUsage || 0}</strong></div>
+                    <div className="p-4 bg-slate-50 dark:bg-zinc-800/60 rounded-xl space-y-2.5 text-slate-800 dark:text-zinc-200 border border-slate-100 dark:border-zinc-800">
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm border-b border-slate-200/60 dark:border-zinc-700 pb-1.5">Active Company Subscription</h4>
+                      <div className="flex justify-between py-1 border-b border-slate-200/50 dark:border-zinc-800"><span>Package Plan:</span><strong className="uppercase text-blue-600 dark:text-blue-400">{companyDetail?.company?.subscription?.plan}</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-200/50 dark:border-zinc-800"><span>Status:</span><strong className="capitalize text-emerald-600 dark:text-emerald-400">{companyDetail?.company?.subscription?.status}</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-200/50 dark:border-zinc-800"><span>Billing Cycle:</span><strong className="capitalize">{companyDetail?.company?.subscription?.billingCycle || 'monthly'}</strong></div>
+                      <div className="flex justify-between py-1"><span>AI Credit Usage:</span><strong>{companyDetail?.company?.subscription?.currentAiUsage || 0} Queries</strong></div>
                     </div>
                   )}
                 </>
