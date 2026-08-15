@@ -156,7 +156,7 @@ export const Teams = () => {
                       <span className="text-[10px] text-brand-textSecondary dark:text-zinc-400">Owner: {team.ownerId?.name || 'N/A'}</span>
                     </div>
                     <Button
-                      size="xs"
+                      size="sm"
                       variant="outline"
                       onClick={(e) => { e.stopPropagation(); openInviteModal(team); }}
                       className="rounded-xl gap-1.5 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/60 font-bold"
@@ -169,7 +169,7 @@ export const Teams = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-brand-textSecondary dark:text-zinc-400 uppercase tracking-widest">Active Members ({team.members.length})</span>
                       <Button
-                        size="xs"
+                        size="sm"
                         variant="ghost"
                         onClick={(e) => { e.stopPropagation(); openInviteModal(team); }}
                         className="text-[10px] font-bold text-blue-600 dark:text-blue-400 p-0 h-auto hover:bg-transparent"
@@ -238,7 +238,7 @@ export const Teams = () => {
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Corporate Department &amp; Collaborators</p>
                 </div>
                 <Button
-                  size="xs"
+                  size="sm"
                   variant="outline"
                   onClick={() => {
                     const t = selectedTeam;
