@@ -375,7 +375,7 @@ export const AiAssistant = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18 }}
-              className="h-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3"
+              className="min-h-full sm:h-full grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto sm:overflow-visible pb-4 sm:pb-0"
             >
               {/* Left: form */}
               <div className="rounded-2xl flex flex-col overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md">
@@ -528,7 +528,7 @@ export const AiAssistant = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18 }}
-              className="h-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3"
+              className="min-h-full sm:h-full grid grid-cols-1 lg:grid-cols-2 gap-3 overflow-y-auto sm:overflow-visible pb-4 sm:pb-0"
             >
               {/* Left: notes input */}
               <div className="rounded-2xl flex flex-col overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md">
