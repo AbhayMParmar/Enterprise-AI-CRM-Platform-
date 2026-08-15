@@ -532,7 +532,7 @@ export const CompanySubscriptionTable = () => {
                 <Button variant="outline" size="sm" onClick={() => setSelectedSubDetail(null)}>
                   Close
                 </Button>
-                <Button variant="primary" size="sm" onClick={() => { handleOpenOverrideModal(selectedSubDetail); setSelectedSubDetail(null); }}>
+                <Button variant="primary" size="sm" onClick={() => { handleOpenEdit(selectedSubDetail); setSelectedSubDetail(null); }}>
                   Edit Subscription
                 </Button>
               </div>
