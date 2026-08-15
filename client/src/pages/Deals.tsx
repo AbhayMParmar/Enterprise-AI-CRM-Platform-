@@ -32,10 +32,19 @@ export const Deals = () => {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState('All');
   const [assignedFilter, setAssignedFilter] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Create Deal Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -330,8 +339,8 @@ export const Deals = () => {
         </CardBody>
       </Card>
 
-      {/* Main View: Kanban vs Table */}
-      {viewMode === 'kanban' ? (
+      {/* Main View: Kanban on Desktop vs Table on Mobile */}
+      {viewMode === 'kanban' && !isMobile ? (
         <KanbanBoard
           deals={deals}
           onStageChange={handleStageChange}
