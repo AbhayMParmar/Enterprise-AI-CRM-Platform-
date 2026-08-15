@@ -113,7 +113,7 @@ export const UserSubscriptionTable = () => {
           </div>
         </div>
 
-        <Button variant="outline" size="sm" onClick={fetchUserSubscriptionOverview} className="dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+        <Button variant="outline" size="sm" onClick={() => fetchUserSubscriptionOverview(true)} className="dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
           <RefreshCw size={14} className="mr-1" />
           Refresh Mapping
         </Button>
@@ -347,7 +347,7 @@ export const UserSubscriptionTable = () => {
                   Close
                 </Button>
                 {selectedUserMapping.role !== 'SUPER_ADMIN' && selectedUserMapping.role !== 'SuperAdmin' && (
-                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUserAccount(selectedUserMapping.id); setSelectedUserMapping(null); }}>
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserMapping.id, selectedUserMapping.name); setSelectedUserMapping(null); }}>
                     Delete Account
                   </Button>
                 )}

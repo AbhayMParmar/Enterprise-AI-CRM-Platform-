@@ -1,18 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   UserPlus,
   Shield,
   Search,
-  Filter,
   RefreshCw,
-  MoreVertical,
   KeyRound,
   Trash2,
   CheckCircle,
   XCircle,
-  AlertTriangle,
-  ChevronDown,
   X,
 } from 'lucide-react';
 import api from '../services/api';
@@ -26,7 +22,7 @@ interface UserRecord {
   _id: string;
   name: string;
   email: string;
-  role: 'SuperAdmin' | 'Admin' | 'SalesManager' | 'SalesRep';
+  role: string;
   avatar?: string;
   phone?: string;
   company?: string;
@@ -338,7 +334,7 @@ export const UserManagement = () => {
             <Users className="w-4 h-4 text-brand-primary" />
             Workspace Accounts ({users.length})
           </h3>
-          <Button variant="outline" size="sm" onClick={fetchUsers}>
+          <Button variant="outline" size="sm" onClick={() => fetchUsers(true)}>
             <RefreshCw className="w-3.5 h-3.5 mr-1" />
             Refresh
           </Button>

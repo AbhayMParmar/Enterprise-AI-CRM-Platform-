@@ -216,7 +216,7 @@ export const CompanySubscriptionTable = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchSubscriptions} className="dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+            <Button variant="outline" size="sm" onClick={() => fetchSubscriptions(true)} className="dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
               <RefreshCw size={14} className="mr-1" />
               Refresh
             </Button>

@@ -184,7 +184,7 @@ export const SuperAdminDashboard = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={fetchCompanyData} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
+          <Button variant="outline" size="sm" onClick={() => fetchCompanyData(true)} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             Refresh Control Center
           </Button>
