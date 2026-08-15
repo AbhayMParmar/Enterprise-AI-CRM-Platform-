@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { 
   createTeam, 
-  getMyTeams 
+  getMyTeams,
+  addMemberToTeam
 } from '../controllers/teamController';
 import { authenticate } from '../middleware/authMiddleware';
 
@@ -12,6 +13,7 @@ router.use(authenticate);
 
 router.post('/', createTeam);
 router.get('/', getMyTeams);
+router.post('/:teamId/invite', addMemberToTeam);
+router.post('/:teamId/add-member', addMemberToTeam);
 
 export default router;
-

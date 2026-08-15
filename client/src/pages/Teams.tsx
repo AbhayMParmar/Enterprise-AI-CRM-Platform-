@@ -3,7 +3,10 @@ import {
   Users, 
   Plus, 
   X, 
-  Building2
+  Building2,
+  UserPlus,
+  Mail,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -32,11 +35,18 @@ export const Teams = () => {
   const [teams, setTeams] = useState<TeamSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Team Detail Popup Modal State
+  // Team Detail Popup Modal State (Mobile)
   const [selectedTeam, setSelectedTeam] = useState<TeamSession | null>(null);
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Invite Member Modal State
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [inviteTargetTeam, setInviteTargetTeam] = useState<TeamSession | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'Admin' | 'Member'>('Member');
+  const [isInviting, setIsInviting] = useState(false);
 
   // Form states
   const [newTeamName, setNewTeamName] = useState('');
@@ -58,6 +68,13 @@ export const Teams = () => {
     fetchTeams();
   }, []);
 
+  const openInviteModal = (team: TeamSession) => {
+    setInviteTargetTeam(team);
+    setInviteEmail('');
+    setInviteRole('Member');
+    setIsInviteModalOpen(true);
+  };
+
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTeamName.trim()) return;
@@ -76,12 +93,33 @@ export const Teams = () => {
     }
   };
 
+  const handleInviteMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteTargetTeam || !inviteEmail.trim()) return;
+
+    setIsInviting(true);
+    try {
+      const res = await api.post(`/teams/${inviteTargetTeam._id}/invite`, {
+        email: inviteEmail.trim(),
+        role: inviteRole,
+      });
+      success(res.data.message || `Member invited successfully to ${inviteTargetTeam.name}!`);
+      setIsInviteModalOpen(false);
+      setInviteEmail('');
+      fetchTeams();
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to send team invitation.');
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-brand-textPrimary">Teams & Collaborators</h1>
+          <h1 className="text-xl font-bold text-brand-textPrimary">Teams &amp; Collaborators</h1>
           <p className="text-xs text-brand-textSecondary mt-0.5">Manage teams and corporate department structures.</p>
         </div>
         <Button variant="primary" size="sm" onClick={() => setIsCreateModalOpen(true)}>
@@ -117,9 +155,28 @@ export const Teams = () => {
                       <h4 className="font-bold text-brand-textPrimary dark:text-white">{team.name}</h4>
                       <span className="text-[10px] text-brand-textSecondary dark:text-zinc-400">Owner: {team.ownerId?.name || 'N/A'}</span>
                     </div>
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={(e) => { e.stopPropagation(); openInviteModal(team); }}
+                      className="rounded-xl gap-1.5 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/60 font-bold"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      Invite Member
+                    </Button>
                   </CardHeader>
                   <CardBody className="flex flex-col gap-3.5">
-                    <span className="text-[10px] font-bold text-brand-textSecondary dark:text-zinc-400 uppercase tracking-widest">Active Members ({team.members.length})</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-brand-textSecondary dark:text-zinc-400 uppercase tracking-widest">Active Members ({team.members.length})</span>
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        onClick={(e) => { e.stopPropagation(); openInviteModal(team); }}
+                        className="text-[10px] font-bold text-blue-600 dark:text-blue-400 p-0 h-auto hover:bg-transparent"
+                      >
+                        + Add Member
+                      </Button>
+                    </div>
                     
                     <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
                       {team.members.map((member, idx) => {
@@ -180,9 +237,19 @@ export const Teams = () => {
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Corporate Department &amp; Collaborators</p>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black bg-blue-100 text-blue-900 border border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800">
-                  {selectedTeam.members?.length || 0} Members
-                </span>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onClick={() => {
+                    const t = selectedTeam;
+                    setSelectedTeam(null);
+                    openInviteModal(t);
+                  }}
+                  className="rounded-xl gap-1 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-bold"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  Invite
+                </Button>
               </div>
             </div>
 
@@ -201,7 +268,19 @@ export const Teams = () => {
 
               {/* Members List */}
               <div className="space-y-2 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
-                <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mb-1">Active Team Members ({selectedTeam.members?.length})</span>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Active Team Members ({selectedTeam.members?.length})</span>
+                  <button
+                    onClick={() => {
+                      const t = selectedTeam;
+                      setSelectedTeam(null);
+                      openInviteModal(t);
+                    }}
+                    className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    + Invite Member
+                  </button>
+                </div>
                 {selectedTeam.members?.map((member, idx) => {
                   if (!member.userId) return null;
                   return (
@@ -244,11 +323,11 @@ export const Teams = () => {
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 30, scale: 0.95 }}
-              className="bg-white rounded-2xl max-w-sm w-full overflow-hidden smooth-shadow border border-brand-border z-10"
+              className="bg-white dark:bg-[#121212] rounded-2xl max-w-sm w-full overflow-hidden smooth-shadow border border-brand-border dark:border-zinc-800 z-10"
             >
-              <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between bg-slate-50/50">
-                <h3 className="font-bold text-brand-textPrimary">Create Corporate Team</h3>
-                <button onClick={() => setIsCreateModalOpen(false)} className="text-brand-textSecondary hover:text-brand-textPrimary">
+              <div className="px-6 py-4 border-b border-brand-border dark:border-zinc-800 flex items-center justify-between bg-slate-50/50 dark:bg-zinc-900/50">
+                <h3 className="font-bold text-brand-textPrimary dark:text-white">Create Corporate Team</h3>
+                <button onClick={() => setIsCreateModalOpen(false)} className="text-brand-textSecondary dark:text-zinc-400 hover:text-brand-textPrimary">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -262,9 +341,86 @@ export const Teams = () => {
                     required 
                   />
                 </div>
-                <div className="px-6 py-4 border-t border-brand-border bg-slate-50/50 flex items-center justify-end gap-2.5">
+                <div className="px-6 py-4 border-t border-brand-border dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex items-center justify-end gap-2.5">
                   <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
                   <Button type="submit" variant="primary" isLoading={isSubmitting}>Confirm</Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal: Invite Team Member (All Devices) */}
+      <AnimatePresence>
+        {isInviteModalOpen && inviteTargetTeam && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              onClick={() => setIsInviteModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 25, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 25, scale: 0.95 }}
+              className="bg-white dark:bg-[#121212] rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 z-10"
+            >
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between bg-slate-50/80 dark:bg-zinc-900/70">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 rounded-xl">
+                    <UserPlus className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">Invite Team Member</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400">Add collaborator to <span className="font-bold text-blue-600 dark:text-blue-400">{inviteTargetTeam.name}</span></p>
+                  </div>
+                </div>
+                <button onClick={() => setIsInviteModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleInviteMember}>
+                <div className="p-6 space-y-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Member Email Address</label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                      <input
+                        type="email"
+                        placeholder="e.g. colleague@company.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        required
+                        className="w-full pl-9 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-zinc-300">Team Role</label>
+                    <select
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value as any)}
+                      className="w-full px-3 py-2.5 text-xs bg-slate-50 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                    >
+                      <option value="Member">Member (Standard Collaborator)</option>
+                      <option value="Admin">Admin (Team Co-lead)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="px-6 py-4 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-zinc-900/70 flex items-center justify-end gap-2.5">
+                  <Button type="button" variant="outline" onClick={() => setIsInviteModalOpen(false)} className="rounded-xl px-4">
+                    Cancel
+                  </Button>
+                  <Button type="submit" variant="primary" isLoading={isInviting} className="rounded-xl px-5">
+                    <UserPlus className="w-4 h-4 mr-1.5" />
+                    Send Invitation
+                  </Button>
                 </div>
               </form>
             </motion.div>
@@ -276,4 +432,3 @@ export const Teams = () => {
 };
 
 export default Teams;
-
