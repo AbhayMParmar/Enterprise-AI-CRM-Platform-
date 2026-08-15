@@ -486,7 +486,7 @@ export const ProfilePage: React.FC = () => {
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-      className="min-h-screen bg-[#F8FAFC] dark:bg-[#09090B] p-3 sm:p-6 text-slate-800 dark:text-zinc-100 font-sans max-w-5xl mx-auto selection:bg-blue-500 selection:text-white"
+      className="min-h-screen bg-[#F8FAFC] dark:bg-[#09090B] p-0 sm:p-6 text-slate-800 dark:text-zinc-100 font-sans max-w-full sm:max-w-5xl mx-auto selection:bg-blue-500 selection:text-white"
     >
       {/* ── Page Header: Back Button (Hidden on Mobile) ──────────────────────────── */}
       <div className="hidden sm:block mb-4">
@@ -504,7 +504,7 @@ export const ProfilePage: React.FC = () => {
 
         {/* ── Left Column: Avatar & Overview ─────────────────────────────────── */}
         <div className="lg:col-span-1 flex flex-col gap-6">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200/90 dark:border-zinc-800 p-4 sm:p-6 shadow-xs flex flex-col items-center text-center relative overflow-hidden">
+          <div className="bg-white dark:bg-[#121212] rounded-none sm:rounded-2xl border-0 sm:border border-slate-200/90 dark:border-zinc-800 p-4 sm:p-6 shadow-none sm:shadow-xs flex flex-col items-center text-center relative overflow-hidden">
             <div className="absolute top-0 inset-x-0 h-20 sm:h-24 bg-gradient-to-r from-blue-600 to-indigo-600 pointer-events-none" />
 
             {/* Avatar */}
@@ -584,7 +584,7 @@ export const ProfilePage: React.FC = () => {
         <div className="lg:col-span-2 flex flex-col gap-6">
 
           {/* Personal Information Card */}
-          <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200/90 dark:border-zinc-800 p-6 shadow-xs">
+          <div className="bg-white dark:bg-[#121212] rounded-none sm:rounded-2xl border-0 sm:border border-slate-200/90 dark:border-zinc-800 p-4 sm:p-6 shadow-none sm:shadow-xs">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-zinc-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <UserIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -708,7 +708,7 @@ export const ProfilePage: React.FC = () => {
           </div>
 
           {/* Account Security Card */}
-          <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200/90 dark:border-zinc-800 p-6 shadow-xs">
+          <div className="bg-white dark:bg-[#121212] rounded-none sm:rounded-2xl border-0 sm:border border-slate-200/90 dark:border-zinc-800 p-4 sm:p-6 shadow-none sm:shadow-xs">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-zinc-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -796,7 +796,7 @@ export const ProfilePage: React.FC = () => {
 
           {/* ── Subscription & AI Credits Card ───────────────────────────── */}
           {subscription && (
-            <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200/90 dark:border-zinc-800 p-6 shadow-xs overflow-hidden relative">
+            <div className="bg-white dark:bg-[#121212] rounded-none sm:rounded-2xl border-0 sm:border border-slate-200/90 dark:border-zinc-800 p-4 sm:p-6 shadow-none sm:shadow-xs overflow-hidden relative">
               {/* Decorative top gradient bar */}
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-indigo-500" />
 

@@ -179,8 +179,8 @@ export const Deals = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="flex items-center bg-slate-100 dark:bg-[#18181B] p-1 rounded-lg border border-brand-border dark:border-zinc-800">
+          {/* View Toggle (Kanban vs Table): Hidden on Mobile */}
+          <div className="hidden sm:flex items-center bg-slate-100 dark:bg-[#18181B] p-1 rounded-lg border border-brand-border dark:border-zinc-800">
             <button
               onClick={() => setViewMode('kanban')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
@@ -377,7 +377,11 @@ export const Deals = () => {
                   </tr>
                 ) : (
                   deals.map((deal) => (
-                    <tr key={deal.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr
+                      key={deal.id}
+                      onClick={() => setSelectedDeal(deal)}
+                      className="hover:bg-slate-50/50 transition-colors cursor-pointer"
+                    >
                       <td className="px-6 py-4 font-semibold text-brand-textPrimary">{deal.title}</td>
                       <td className="px-6 py-4 text-slate-600">{deal.customer?.company || deal.customer?.name || '-'}</td>
                       <td className="px-6 py-4">

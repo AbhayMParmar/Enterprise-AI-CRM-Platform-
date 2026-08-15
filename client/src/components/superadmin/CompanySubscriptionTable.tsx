@@ -62,6 +62,7 @@ export const CompanySubscriptionTable = () => {
   const [subscriptions, setSubscriptions] = useState<CompanySubscriptionItem[]>([]);
   const [stats, setStats] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedSubDetail, setSelectedSubDetail] = useState<any | null>(null);
 
   // Filter & Search State
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -267,7 +268,11 @@ export const CompanySubscriptionTable = () => {
                   subscriptions.map((comp) => {
                     const sub = comp.subscription;
                     return (
-                      <tr key={comp.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors">
+                      <tr
+                        key={comp.id}
+                        onClick={() => setSelectedSubDetail(comp)}
+                        className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                      >
                         <td className="p-3.5">
                           <div className="font-bold text-slate-900 dark:text-white">{comp.companyName}</div>
                           <div className="text-[11px] text-slate-500 dark:text-zinc-400">{comp.owner?.name || 'Owner'} ({comp.businessEmail})</div>
@@ -430,6 +435,87 @@ export const CompanySubscriptionTable = () => {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile & Desktop Subscription Detail Popup Modal */}
+      {selectedSubDetail && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-lg w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
+            {/* Header with Close Icon (X) */}
+            <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+              <div>
+                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Company Subscription Details</span>
+                <h3 className="font-extrabold text-base text-white">{selectedSubDetail.companyName}</h3>
+                <p className="text-xs text-slate-400">Owner: {selectedSubDetail.owner?.name || 'Company Owner'} ({selectedSubDetail.businessEmail})</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedSubDetail(null)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+                <div>
+                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Plan Name</span>
+                  <span className="font-extrabold text-blue-600 dark:text-blue-400 text-sm uppercase">
+                    {selectedSubDetail.subscription.plan}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Subscription Status</span>
+                  <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    selectedSubDetail.subscription.status === 'active'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                  }`}>
+                    {selectedSubDetail.subscription.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">Billing Cycle &amp; Amount:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {selectedSubDetail.subscription.billingCycle} • ₹{selectedSubDetail.subscription.amountPaid?.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">Expiration Date:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {selectedSubDetail.subscription.endDate ? new Date(selectedSubDetail.subscription.endDate).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">User Quota Usage:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {selectedSubDetail.subscription.limits?.currentUsers} / {selectedSubDetail.subscription.limits?.maxUsers} Users
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">AI Credit Usage:</span>
+                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                    {selectedSubDetail.subscription.limits?.currentAiUsage?.toLocaleString()} / {selectedSubDetail.subscription.limits?.maxAiLimit?.toLocaleString()} Credits
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setSelectedSubDetail(null)}>
+                  Close
+                </Button>
+                <Button variant="primary" size="sm" onClick={() => { handleOpenOverrideModal(selectedSubDetail); setSelectedSubDetail(null); }}>
+                  Edit Subscription
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}

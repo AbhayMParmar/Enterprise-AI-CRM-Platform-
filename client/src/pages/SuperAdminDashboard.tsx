@@ -419,7 +419,11 @@ export const SuperAdminDashboard = () => {
                       </tr>
                     ) : (
                       companies.map((comp) => (
-                        <tr key={comp.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors">
+                        <tr
+                          key={comp.id}
+                          onClick={() => openCompanyDetail(comp.id)}
+                          className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                        >
                           <td className="p-3.5">
                             <div className="font-bold text-slate-900 dark:text-white">{comp.companyName}</div>
                             <div className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">ID: {comp.id.slice(-8)}</div>

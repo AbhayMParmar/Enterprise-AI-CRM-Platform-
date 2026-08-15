@@ -42,6 +42,7 @@ export const UserSubscriptionTable = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedUserMapping, setSelectedUserMapping] = useState<any | null>(null);
 
   const fetchUserSubscriptionOverview = async () => {
     setIsLoading(true);
@@ -164,7 +165,11 @@ export const UserSubscriptionTable = () => {
                   const sub = usr.inheritedSubscription;
                   const isSuperAdmin = usr.role === 'SUPER_ADMIN' || usr.role === 'SuperAdmin';
                   return (
-                    <tr key={usr.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors">
+                    <tr
+                      key={usr.id}
+                      onClick={() => setSelectedUserMapping(usr)}
+                      className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
+                    >
                       <td className="p-3.5">
                         <div className="font-bold text-slate-900 dark:text-white">{usr.name}</div>
                         <div className="text-[11px] text-slate-500 dark:text-zinc-400">{usr.email}</div>
@@ -182,7 +187,7 @@ export const UserSubscriptionTable = () => {
                               : 'bg-slate-100 text-slate-800 dark:bg-zinc-800 dark:text-zinc-300 dark:border dark:border-zinc-700'
                           }`}
                         >
-                          {usr.role}
+                          {usr.role === 'Admin' || usr.role === 'COMPANY_OWNER' ? 'Company Owner' : usr.role === 'SalesManager' || usr.role === 'SALES_MANAGER' ? 'Sales Manager' : usr.role === 'SalesRep' || usr.role === 'SALES_REPRESENTATIVE' ? 'Sales Rep' : usr.role}
                         </span>
                       </td>
 
@@ -259,6 +264,76 @@ export const UserSubscriptionTable = () => {
           </table>
         </div>
       </CardBody>
+      {/* Mobile & Desktop User Mapping Detail Popup Modal */}
+      {selectedUserMapping && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
+            {/* Header with Close Icon (X) */}
+            <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+              <div>
+                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">User &amp; Plan Mapping</span>
+                <h3 className="font-extrabold text-base text-white">{selectedUserMapping.name}</h3>
+                <p className="text-xs text-slate-400">{selectedUserMapping.email}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedUserMapping(null)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+                <div>
+                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Assigned Role</span>
+                  <span className="font-extrabold text-slate-900 dark:text-white text-xs block mt-1">
+                    {selectedUserMapping.role === 'Admin' || selectedUserMapping.role === 'COMPANY_OWNER' ? 'Company Owner' : selectedUserMapping.role === 'SalesManager' || selectedUserMapping.role === 'SALES_MANAGER' ? 'Sales Manager' : selectedUserMapping.role === 'SalesRep' || selectedUserMapping.role === 'SALES_REPRESENTATIVE' ? 'Sales Rep' : selectedUserMapping.role}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Inherited Plan</span>
+                  <span className="font-extrabold text-blue-600 dark:text-blue-400 text-xs block mt-1 uppercase">
+                    {selectedUserMapping.inheritedSubscription?.plan || 'Free'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">Assigned Company:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedUserMapping.companyName}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">AI Feature Access:</span>
+                  <span className={`font-bold ${selectedUserMapping.inheritedSubscription?.aiAccess ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {selectedUserMapping.inheritedSubscription?.aiAccess ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">AI Credit Usage:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {selectedUserMapping.inheritedSubscription?.currentAiUsage?.toLocaleString()} / {selectedUserMapping.inheritedSubscription?.aiQueryLimit?.toLocaleString()} Credits
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setSelectedUserMapping(null)}>
+                  Close
+                </Button>
+                {selectedUserMapping.role !== 'SUPER_ADMIN' && selectedUserMapping.role !== 'SuperAdmin' && (
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUserAccount(selectedUserMapping.id); setSelectedUserMapping(null); }}>
+                    Delete Account
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 };

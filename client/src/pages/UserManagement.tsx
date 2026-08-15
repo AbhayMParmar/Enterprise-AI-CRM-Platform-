@@ -51,6 +51,7 @@ export const UserManagement = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [targetUser, setTargetUser] = useState<UserRecord | null>(null);
+  const [selectedUserDetail, setSelectedUserDetail] = useState<UserRecord | null>(null);
 
   // New User Form State
   const [newName, setNewName] = useState('');
@@ -243,18 +244,24 @@ export const UserManagement = () => {
       <Card>
         <CardBody className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Role Filter Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-            {['ALL', 'SuperAdmin', 'Admin', 'SalesManager', 'SalesRep'].map((role) => (
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+            {[
+              { key: 'ALL', label: 'ALL' },
+              { key: 'SuperAdmin', label: 'SuperAdmin' },
+              { key: 'Admin', label: 'Company Owner' },
+              { key: 'SalesManager', label: 'Sales Manager' },
+              { key: 'SalesRep', label: 'Sales Rep' },
+            ].map((r) => (
               <button
-                key={role}
-                onClick={() => setSelectedRoleFilter(role)}
+                key={r.key}
+                onClick={() => setSelectedRoleFilter(r.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                  selectedRoleFilter === role
+                  selectedRoleFilter === r.key
                     ? 'bg-brand-primary text-white shadow-xs'
                     : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
                 }`}
               >
-                {role}
+                {r.label}
               </button>
             ))}
           </div>
@@ -360,7 +367,11 @@ export const UserManagement = () => {
                     (!isSuperAdminUser || currentUser?.role === 'SuperAdmin' || currentUser?.role === 'SUPER_ADMIN');
 
                   return (
-                    <tr key={u._id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors">
+                    <tr
+                      key={u._id}
+                      onClick={() => setSelectedUserDetail(u)}
+                      className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer"
+                    >
                       {currentUser?.role === 'SuperAdmin' && (
                         <td className="p-3 text-center">
                           <input
@@ -517,6 +528,86 @@ export const UserManagement = () => {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile & Desktop User Detail Popup Modal */}
+      {selectedUserDetail && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
+            {/* Header with Close Icon (X) */}
+            <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <img
+                  src={
+                    selectedUserDetail.avatar ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=2563eb&color=fff&size=80`
+                  }
+                  alt={selectedUserDetail.name}
+                  className="w-10 h-10 rounded-full border border-white/20 object-cover"
+                />
+                <div>
+                  <h3 className="font-bold text-sm text-white">{selectedUserDetail.name}</h3>
+                  <p className="text-xs text-slate-400">{selectedUserDetail.email}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedUserDetail(null)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+                <div>
+                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Assigned Role</span>
+                  <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getRoleBadgeStyle(selectedUserDetail.role)}`}>
+                    {getRoleLabel(selectedUserDetail.role)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Verification Status</span>
+                  <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    selectedUserDetail.isVerified ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                  }`}>
+                    {selectedUserDetail.isVerified ? 'Verified Active' : 'Unverified / Disabled'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">User ID:</span>
+                  <span className="font-mono text-slate-800 dark:text-zinc-200">{selectedUserDetail._id}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">Company ID:</span>
+                  <span className="font-mono text-slate-800 dark:text-zinc-200">{selectedUserDetail.companyId || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
+                  <span className="text-slate-500 dark:text-zinc-400">Joined Date:</span>
+                  <span className="font-semibold text-slate-800 dark:text-zinc-200">
+                    {new Date(selectedUserDetail.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setSelectedUserDetail(null)}>
+                  Close
+                </Button>
+                {currentUser?.role === 'SuperAdmin' && selectedUserDetail.role !== 'SuperAdmin' && selectedUserDetail.role !== 'SUPER_ADMIN' && (
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail._id); setSelectedUserDetail(null); }}>
+                    Delete Account
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
