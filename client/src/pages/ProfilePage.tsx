@@ -488,42 +488,16 @@ export const ProfilePage: React.FC = () => {
       transition={{ type: 'spring', damping: 25, stiffness: 220 }}
       className="min-h-screen bg-[#F8FAFC] dark:bg-[#09090B] p-3 sm:p-6 text-slate-800 dark:text-zinc-100 font-sans max-w-5xl mx-auto selection:bg-blue-500 selection:text-white"
     >
-      {/* ── Page Header ──────────────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200/80 dark:border-zinc-800">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center justify-between sm:justify-start w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-zinc-700 transition-all shadow-2xs cursor-pointer flex items-center gap-1.5 text-xs font-semibold active:scale-95"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
-            </button>
-            <div className="sm:hidden flex items-center">
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-purple-950/80 border border-blue-100 dark:border-purple-800 text-blue-700 dark:text-purple-300 text-[10px] font-bold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" />
-                <span>{profile?.role}</span>
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Enterprise Profile &amp; Security
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium leading-relaxed">
-              Manage your personal information, role permissions, and authentication security.
-            </p>
-          </div>
-        </div>
-
-        <div className="hidden sm:flex items-center gap-2">
-          <span className="px-3.5 py-1.5 rounded-full bg-blue-50 dark:bg-purple-950/80 border border-blue-100 dark:border-purple-800 text-blue-700 dark:text-purple-300 text-xs font-bold flex items-center gap-1.5 shadow-2xs">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>{profile?.role} Account</span>
-          </span>
-        </div>
+      {/* ── Page Header: Back Button ──────────────────────────────────────────── */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-zinc-700 transition-all shadow-2xs cursor-pointer inline-flex items-center gap-1.5 text-xs font-semibold active:scale-95"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -172,8 +172,63 @@ export const SuperAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Main Navigation Tabs */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-200/80 dark:bg-[#121212] dark:border dark:border-zinc-800 rounded-xl overflow-x-auto">
+      {/* Main Navigation Tabs: 2x2 Grid on Mobile (Row 1: 2 tabs, Row 2: 2 tabs) */}
+      <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-200/80 dark:bg-[#121212] border border-slate-200/80 dark:border-zinc-800 rounded-2xl md:hidden">
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('companies')}
+          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeMainTab === 'companies'
+              ? 'bg-white text-blue-600 dark:bg-zinc-800 dark:text-blue-400 shadow-sm border border-blue-200 dark:border-zinc-700'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Building2 size={15} />
+          <span className="truncate">Companies Hub</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('packages')}
+          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeMainTab === 'packages'
+              ? 'bg-white text-blue-600 dark:bg-zinc-800 dark:text-blue-400 shadow-sm border border-blue-200 dark:border-zinc-700'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <PackageIcon size={15} />
+          <span className="truncate">Packages</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('subscriptions')}
+          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeMainTab === 'subscriptions'
+              ? 'bg-white text-blue-600 dark:bg-zinc-800 dark:text-blue-400 shadow-sm border border-blue-200 dark:border-zinc-700'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <CreditCard size={15} />
+          <span className="truncate">Subscriptions</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('users')}
+          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeMainTab === 'users'
+              ? 'bg-white text-blue-600 dark:bg-zinc-800 dark:text-blue-400 shadow-sm border border-blue-200 dark:border-zinc-700'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Users size={15} />
+          <span className="truncate">User Mapping</span>
+        </button>
+      </div>
+
+      {/* Main Navigation Tabs: Desktop Horizontal Strip */}
+      <div className="hidden md:flex items-center gap-2 p-1.5 bg-slate-200/80 dark:bg-[#121212] dark:border dark:border-zinc-800 rounded-xl overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveMainTab('companies')}

@@ -66,7 +66,7 @@ export const Logo: React.FC<LogoProps> = ({
         <div className="flex flex-col leading-none">
           <div className={`font-black tracking-tight text-slate-900 dark:text-white ${textSizeMap[size]} flex items-center gap-1.5`}>
             <span>AI CRM</span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-blue-600 text-white tracking-wider shadow-2xs">
+            <span className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-blue-600 text-white tracking-wider shadow-2xs">
               ENTERPRISE
             </span>
           </div>
