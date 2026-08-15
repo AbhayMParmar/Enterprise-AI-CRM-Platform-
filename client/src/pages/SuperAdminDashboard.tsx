@@ -27,6 +27,7 @@ import { useToast } from '../components/ui/Toast';
 import PackageManagement from '../components/superadmin/PackageManagement';
 import CompanySubscriptionTable from '../components/superadmin/CompanySubscriptionTable';
 import UserSubscriptionTable from '../components/superadmin/UserSubscriptionTable';
+import RbacPermissionConsole from '../components/admin/RbacPermissionConsole';
 
 interface CompanyStats {
   totalCompanies: number;
@@ -75,7 +76,7 @@ interface CompanyItem {
 export const SuperAdminDashboard = () => {
   const { success, error } = useToast();
   const [activeMainTab, setActiveMainTab] = useState<
-    'companies' | 'packages' | 'subscriptions' | 'users' | 'audit'
+    'companies' | 'packages' | 'subscriptions' | 'users' | 'audit' | 'rbac'
   >('companies');
 
   const [stats, setStats] = useState<CompanyStats | null>(null);
@@ -298,6 +299,19 @@ export const SuperAdminDashboard = () => {
         >
           <Users size={16} />
           <span>User &amp; Subscription Mapping</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab('rbac')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeMainTab === 'rbac'
+              ? 'bg-white text-blue-600 dark:bg-zinc-800 dark:text-blue-400 shadow-sm'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white dark:hover:bg-zinc-800/50'
+          }`}
+        >
+          <ShieldCheck size={16} />
+          <span>RBAC Console</span>
         </button>
       </div>
 
@@ -571,6 +585,9 @@ export const SuperAdminDashboard = () => {
 
       {/* TAB 4: USER SUBSCRIPTION MAPPING */}
       {activeMainTab === 'users' && <UserSubscriptionTable />}
+
+      {/* TAB 5: RBAC PERMISSION CONSOLE */}
+      {activeMainTab === 'rbac' && <RbacPermissionConsole />}
 
       {/* Company Detail Inspection Modal */}
       {selectedCompanyId && (

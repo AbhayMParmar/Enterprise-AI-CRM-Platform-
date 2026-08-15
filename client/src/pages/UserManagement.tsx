@@ -17,6 +17,7 @@ import { Card, CardHeader, CardBody } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useToast } from '../components/ui/Toast';
+import RbacPermissionConsole from '../components/admin/RbacPermissionConsole';
 
 interface UserRecord {
   _id: string;
@@ -37,6 +38,7 @@ export const UserManagement = () => {
   const { user: currentUser } = useAuthStore();
   const { success, error } = useToast();
 
+  const [activeTab, setActiveTab] = useState<'users' | 'rbac'>('users');
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -266,6 +268,36 @@ export const UserManagement = () => {
         </Button>
       </div>
 
+      {/* Navigation Tab Switcher */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-zinc-800 pb-2">
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'users'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-700'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          Workspace Accounts ({users.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('rbac')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'rbac'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-700'
+          }`}
+        >
+          <Shield className="w-4 h-4" />
+          RBAC Permission Console
+        </button>
+      </div>
+
+      {activeTab === 'rbac' ? (
+        <RbacPermissionConsole />
+      ) : (
+        <>
       {/* Filter & Search Bar */}
       <Card>
         <CardBody className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -506,6 +538,8 @@ export const UserManagement = () => {
           )}
         </CardBody>
       </Card>
+      </>
+      )}
 
       {/* Provision User Modal */}
       {isCreateModalOpen && (

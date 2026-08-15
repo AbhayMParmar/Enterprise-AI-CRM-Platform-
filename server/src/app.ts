@@ -28,6 +28,7 @@ import paymentRoutes from './routes/paymentRoutes';
 import companyRoutes from './routes/companyRoutes';
 import joinRequestRoutes from './routes/joinRequestRoutes';
 import packageRoutes from './routes/packageRoutes';
+import rbacRoutes from './routes/rbacRoutes';
 import { apiLimiter, authLimiter, aiLimiter } from './middleware/rateLimiter';
 import { connectDB } from './config/db';
 
@@ -120,6 +121,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/join-requests', joinRequestRoutes);
 app.use('/api/packages', packageRoutes);
+app.use('/api/rbac', rbacRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 
