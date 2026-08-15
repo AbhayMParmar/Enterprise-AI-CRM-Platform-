@@ -260,7 +260,7 @@ export const TasksPage = () => {
                       className="mt-1 w-4 h-4 rounded text-brand-primary border-slate-300 focus:ring-brand-primary cursor-pointer"
                     />
 
-                    <div className="flex flex-col gap-1 min-w-0 flex-1 cursor-pointer" onClick={() => setSelectedTask(task)}>
+                    <div className="flex flex-col gap-1 min-w-0 flex-1 sm:cursor-default cursor-pointer" onClick={() => { if (window.innerWidth < 768) setSelectedTask(task); }}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className={`font-bold text-xs ${task.status === 'Completed' ? 'line-through text-slate-500' : 'text-brand-textPrimary'}`}>
                           {task.title}
@@ -411,6 +411,120 @@ export const TasksPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── Mobile-Only Task Detail Popup Container ────────────────────────── */}
+      {selectedTask && (
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#121212] w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-250">
+            {/* Top Center Drag Pill Indicator Handle (Clickable Close Trigger) */}
+            <div className="pt-3 pb-2 flex justify-center border-b border-slate-100 dark:border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setSelectedTask(null)}
+                title="Close Modal"
+                className="w-14 h-1.5 bg-slate-300 dark:bg-zinc-700 hover:bg-slate-400 dark:hover:bg-zinc-600 rounded-full transition-colors cursor-pointer"
+              />
+            </div>
+
+            {/* Header Title Bar */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-zinc-800/80 bg-white dark:bg-[#121212]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    {selectedTask.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Task Detail Overview</p>
+                </div>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black border self-start ${
+                  selectedTask.priority === 'High'
+                    ? 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-800'
+                    : selectedTask.priority === 'Medium'
+                    ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800'
+                    : 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
+                }`}>
+                  {selectedTask.priority} Priority
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Body — Vertically Stacked Data Layout */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+              {/* Status & Due Date Cards */}
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80">
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Status</span>
+                  <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border self-start ${
+                    selectedTask.status === 'Completed'
+                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
+                      : 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800'
+                  }`}>
+                    {selectedTask.status}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Due Date</span>
+                  <span className="font-extrabold text-slate-900 dark:text-white text-xs mt-1">
+                    {selectedTask.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No Due Date'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Data Properties — Vertically Stacked List */}
+              <div className="space-y-3 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
+                {selectedTask.description && (
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Description</span>
+                    <p className="font-semibold text-slate-800 dark:text-zinc-200 text-xs mt-0.5 whitespace-pre-wrap">{selectedTask.description}</p>
+                  </div>
+                )}
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Assigned Representative</span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedTask.assignedTo?.name || 'Unassigned'}</span>
+                </div>
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Associated Customer</span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedTask.customer?.name || 'N/A'} {selectedTask.customer?.company ? `(${selectedTask.customer.company})` : ''}</span>
+                </div>
+
+                {selectedTask.deal && (
+                  <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Linked Opportunity</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-xs mt-0.5">{selectedTask.deal.title} (${selectedTask.deal.value?.toLocaleString()})</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex justify-end gap-2">
+                <Button
+                  variant={selectedTask.status === 'Completed' ? 'secondary' : 'primary'}
+                  size="sm"
+                  onClick={() => {
+                    handleToggleTaskStatus(selectedTask._id, selectedTask.status);
+                    setSelectedTask(null);
+                  }}
+                  className="rounded-xl px-4 flex-1 sm:flex-none"
+                >
+                  Mark {selectedTask.status === 'Completed' ? 'Pending' : 'Completed'}
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => {
+                    handleDeleteTask(selectedTask._id);
+                    setSelectedTask(null);
+                  }}
+                  className="rounded-xl px-4"
+                >
+                  Delete Task
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

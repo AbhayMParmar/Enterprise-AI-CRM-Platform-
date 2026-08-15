@@ -174,7 +174,7 @@ export const CalendarPage = () => {
                 </div>
               ) : (
                 events.map((evt) => (
-                  <div key={evt._id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer" onClick={() => setSelectedEvent(evt)}>
+                  <div key={evt._id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors sm:cursor-default cursor-pointer" onClick={() => { if (window.innerWidth < 768) setSelectedEvent(evt); }}>
                     <div className="flex items-start gap-3">
                       <div className="p-3 bg-brand-primary/10 text-brand-primary dark:bg-blue-950/60 dark:text-blue-400 rounded-xl flex flex-col items-center justify-center min-w-[54px] border border-brand-primary/20 dark:border-blue-800">
                         <span className="text-[10px] font-bold uppercase">{new Date(evt.startTime).toLocaleString('default', { month: 'short' })}</span>
@@ -318,7 +318,7 @@ export const CalendarPage = () => {
       </AnimatePresence>
       {/* ── Appointment Detail Popup Container (Mobile Bottom Sheet Modal) ────────────────────────── */}
       {selectedEvent && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#121212] w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-250">
             {/* Top Center Drag Pill Indicator Handle (Clickable Close Trigger) */}
             <div className="pt-3 pb-2 flex justify-center border-b border-slate-100 dark:border-zinc-800/80">

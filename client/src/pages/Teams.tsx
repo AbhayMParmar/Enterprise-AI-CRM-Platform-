@@ -110,7 +110,7 @@ export const Teams = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {teams.map((team) => (
-              <div key={team._id} onClick={() => setSelectedTeam(team)} className="cursor-pointer">
+              <div key={team._id} onClick={() => { if (window.innerWidth < 768) setSelectedTeam(team); }} className="sm:cursor-default cursor-pointer">
                 <Card hoverable>
                   <CardHeader className="bg-slate-50/50 dark:bg-zinc-800/50 flex items-center justify-between py-4">
                     <div className="flex flex-col gap-0.5">
@@ -159,7 +159,7 @@ export const Teams = () => {
 
       {/* ── Team Detail Popup Container (Mobile Bottom Sheet Modal) ────────────────────────── */}
       {selectedTeam && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#121212] w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-250">
             {/* Top Center Drag Pill Indicator Handle (Clickable Close Trigger) */}
             <div className="pt-3 pb-2 flex justify-center border-b border-slate-100 dark:border-zinc-800/80">

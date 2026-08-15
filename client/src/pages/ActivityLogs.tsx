@@ -126,7 +126,7 @@ export const ActivityLogs = () => {
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log._id} onClick={() => setSelectedLog(log)} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
+                    <tr key={log._id} onClick={() => { if (window.innerWidth < 768) setSelectedLog(log); }} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors sm:cursor-default cursor-pointer">
                       <td className="px-6 py-4">{getActionIcon(log.action)}</td>
                       <td className="px-6 py-4 font-bold text-slate-800 dark:text-zinc-100">
                         <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
@@ -183,7 +183,7 @@ export const ActivityLogs = () => {
 
       {/* ── Audit Log Detail Popup Container (Mobile Bottom Sheet Modal) ────────────────────────── */}
       {selectedLog && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
           <div className="bg-white dark:bg-[#121212] w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-250">
             {/* Top Center Drag Pill Indicator Handle (Clickable Close Trigger) */}
             <div className="pt-3 pb-2 flex justify-center border-b border-slate-100 dark:border-zinc-800/80">
