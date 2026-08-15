@@ -403,16 +403,30 @@ function LoginForm({ onSwitchToRegister, onOpenCompanyModal, isGoogleConfigured,
   };
 
   const handleGoogle = () => {
-    // Trigger the Google GSI popup - the actual credential will be handled by handleGoogleLoginSuccess
     const google = (window as any).google;
-    if (google && google.accounts) {
-      google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed()) {
-          error('Google Sign-In not available. Please try again.');
-        }
-      });
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '550705576930-cfe9sgcvvrbrk0qsm12l9eufbohp7skt.apps.googleusercontent.com';
+    if (google && google.accounts && google.accounts.id) {
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            if (response && response.credential) {
+              window.dispatchEvent(new CustomEvent('google-login-credential', { detail: response.credential }));
+            }
+          },
+          use_fedcm_for_prompt: true,
+          auto_select: false,
+        });
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
+            console.log('[Google Auth] Prompt notice:', notification.getNotDisplayedReason?.());
+          }
+        });
+      } catch (err) {
+        console.warn('Google GSI prompt warning:', err);
+      }
     } else {
-      error('Google Sign-In not loaded. Please refresh the page.');
+      error('Google Sign-In is initializing. Please try again in a moment.');
     }
   };
 
@@ -726,14 +740,29 @@ function RegisterForm({ onSwitchToLogin, isGoogleConfigured, active = true }: Re
 
   const handleGoogle = () => {
     const google = (window as any).google;
-    if (google && google.accounts) {
-      google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed()) {
-          error('Google Sign-In not available. Please try again.');
-        }
-      });
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '550705576930-cfe9sgcvvrbrk0qsm12l9eufbohp7skt.apps.googleusercontent.com';
+    if (google && google.accounts && google.accounts.id) {
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            if (response && response.credential) {
+              window.dispatchEvent(new CustomEvent('google-login-credential', { detail: response.credential }));
+            }
+          },
+          use_fedcm_for_prompt: true,
+          auto_select: false,
+        });
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
+            console.log('[Google Auth] Prompt notice:', notification.getNotDisplayedReason?.());
+          }
+        });
+      } catch (err) {
+        console.warn('Google GSI prompt warning:', err);
+      }
     } else {
-      error('Google Sign-In not loaded. Please refresh the page.');
+      error('Google Sign-In is initializing. Please try again in a moment.');
     }
   };
 
@@ -2325,29 +2354,45 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
   };
 
   useEffect(() => {
+    const handleCredentialEvent = (e: any) => {
+      if (e.detail) {
+        handleGoogleLoginSuccess(e.detail);
+      }
+    };
+    window.addEventListener('google-login-credential', handleCredentialEvent);
+    return () => window.removeEventListener('google-login-credential', handleCredentialEvent);
+  }, []);
+
+  useEffect(() => {
     if (!isGoogleGsiEnabled) return;
 
     const initGoogle = () => {
       const google = (window as any).google;
-      if (google) {
+      if (google && google.accounts && google.accounts.id) {
         if ((window as any).__googleGsiInitialized) return;
         (window as any).__googleGsiInitialized = true;
 
         google.accounts.id.initialize({
           client_id: clientId,
           callback: (response: any) => handleGoogleLoginSuccess(response.credential),
+          use_fedcm_for_prompt: true,
+          auto_select: false,
         });
 
         const renderBtns = () => {
           ['google-signin-btn-desktop', 'google-signup-btn-desktop', 'google-signin-btn-mobile', 'google-signup-btn-mobile'].forEach(id => {
             const el = document.getElementById(id);
-            if (el && !el.querySelector('iframe')) {
-              google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', width: el.clientWidth || 300 });
+            if (el && document.body.contains(el) && !el.querySelector('iframe')) {
+              try {
+                google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', width: el.clientWidth || 300 });
+              } catch {
+                // Ignore if unmounted
+              }
             }
           });
         };
 
-        setTimeout(renderBtns, 100);
+        setTimeout(renderBtns, 150);
         renderBtns();
       }
     };
