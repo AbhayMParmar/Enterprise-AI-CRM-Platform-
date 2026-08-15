@@ -9,6 +9,7 @@ import {
   Building2,
   Sparkles,
   UserCheck,
+  Trash2,
 } from 'lucide-react';
 import api from '../../services/api';
 import { Card, CardHeader, CardBody } from '../ui/Card';
@@ -36,7 +37,7 @@ export interface UserSubscriptionMappingItem {
 }
 
 export const UserSubscriptionTable = () => {
-  const { error } = useToast();
+  const { success, error } = useToast();
   const [users, setUsers] = useState<UserSubscriptionMappingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
@@ -59,6 +60,22 @@ export const UserSubscriptionTable = () => {
   useEffect(() => {
     fetchUserSubscriptionOverview();
   }, [roleFilter, searchQuery]);
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!window.confirm(`Are you sure you want to delete employee ${userName}? This action cannot be undone.`)) {
+      return;
+    }
+    // Optimistic local state update
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    success(`Employee ${userName} deleted successfully.`);
+
+    try {
+      await api.delete(`/users/${userId}`);
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Failed to delete employee user');
+      fetchUserSubscriptionOverview();
+    }
+  };
 
   return (
     <Card className="bg-white dark:bg-[#121212] border-slate-200 dark:border-zinc-800 shadow-sm">
@@ -124,26 +141,28 @@ export const UserSubscriptionTable = () => {
                 <th className="p-3.5">Inherited Plan Context</th>
                 <th className="p-3.5 text-center">AI Feature Access</th>
                 <th className="p-3.5 text-center">AI Credit Usage</th>
-                <th className="p-3.5 text-right">Account Status</th>
+                <th className="p-3.5 text-center">Account Status</th>
+                <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 dark:text-zinc-500">
+                  <td colSpan={8} className="p-8 text-center text-slate-400 dark:text-zinc-500">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto text-indigo-600 dark:text-indigo-400 mb-2" />
                     Loading user subscription mappings...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400 dark:text-zinc-500 italic">
+                  <td colSpan={8} className="p-8 text-center text-slate-400 dark:text-zinc-500 italic">
                     No users match the search filter.
                   </td>
                 </tr>
               ) : (
                 users.map((usr) => {
                   const sub = usr.inheritedSubscription;
+                  const isSuperAdmin = usr.role === 'SUPER_ADMIN' || usr.role === 'SuperAdmin';
                   return (
                     <tr key={usr.id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors">
                       <td className="p-3.5">
@@ -154,7 +173,7 @@ export const UserSubscriptionTable = () => {
                       <td className="p-3.5">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            usr.role === 'SUPER_ADMIN' || usr.role === 'SuperAdmin'
+                            isSuperAdmin
                               ? 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 dark:border dark:border-purple-800'
                               : usr.role === 'COMPANY_OWNER' || usr.role === 'Admin'
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 dark:border dark:border-blue-800'
@@ -206,7 +225,7 @@ export const UserSubscriptionTable = () => {
                         {sub.currentAiUsage} / {sub.aiQueryLimit}
                       </td>
 
-                      <td className="p-3.5 text-right">
+                      <td className="p-3.5 text-center">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border inline-flex items-center gap-1 ${
                             usr.accountStatus === 'ACTIVE'
@@ -218,6 +237,19 @@ export const UserSubscriptionTable = () => {
                         >
                           {usr.accountStatus}
                         </span>
+                      </td>
+
+                      <td className="p-3.5 text-right">
+                        {!isSuperAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(usr.id, usr.name)}
+                            className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-colors cursor-pointer"
+                            title="Delete Employee Account"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

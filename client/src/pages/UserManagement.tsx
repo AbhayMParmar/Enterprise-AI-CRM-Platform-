@@ -348,9 +348,16 @@ export const UserManagement = () => {
                     u.avatar ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=2563eb&color=fff&size=80`;
 
-                  const isSuperAdminUser = u.role === 'SuperAdmin';
+                  const isSuperAdminUser = u.role === 'SuperAdmin' || u.role === 'SUPER_ADMIN';
+                  const isRequesterAdmin =
+                    currentUser?.role === 'SuperAdmin' ||
+                    currentUser?.role === 'SUPER_ADMIN' ||
+                    currentUser?.role === 'Admin' ||
+                    currentUser?.role === 'COMPANY_OWNER';
+
                   const canModifyUser =
-                    currentUser?.role === 'SuperAdmin' || (currentUser?.role === 'Admin' && !isSuperAdminUser);
+                    isRequesterAdmin &&
+                    (!isSuperAdminUser || currentUser?.role === 'SuperAdmin' || currentUser?.role === 'SUPER_ADMIN');
 
                   return (
                     <tr key={u._id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors">
