@@ -27,7 +27,6 @@ import { useToast } from '../components/ui/Toast';
 import NotificationBell from '../components/notifications/NotificationBell';
 import { Logo } from '../components/common/Logo';
 import ThemeToggle from '../components/common/ThemeToggle';
-import useThemeStore from '../store/themeStore';
 
 interface NavItem {
   label: string;
@@ -99,52 +98,48 @@ export const DashboardLayout = () => {
     return active ? active.label : 'Dashboard';
   }, [navItems, location.pathname]);
 
-  const renderNavLinks = (onClickFn?: () => void) =>
+  const avatarSrc = user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=1D4ED8&color=fff`;
+
+  const renderNavLinks = (onItemClick?: () => void) =>
     navItems.map((item) => {
       const Icon = item.icon;
       const isActive = location.pathname === item.path;
+
       return (
         <Link
           key={item.path}
           to={item.path}
-          onClick={onClickFn}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200
-            ${isActive
-              ? 'bg-blue-600/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 font-bold border-l-3 border-blue-600 dark:border-blue-400'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
-            }
-          `}
+          onClick={onItemClick}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all group relative cursor-pointer ${
+            isActive
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 dark:bg-blue-600 dark:text-white'
+              : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100/90 dark:hover:bg-zinc-800/80 hover:text-blue-600 dark:hover:text-white'
+          }`}
+          title={isSidebarCollapsed ? item.label : undefined}
         >
-          <Icon className="w-4.5 h-4.5 flex-shrink-0" />
-          {!isSidebarCollapsed && <span>{item.label}</span>}
+          <Icon
+            className={`w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110 ${
+              isActive ? 'text-white' : 'text-slate-500 dark:text-zinc-400 group-hover:text-blue-600 dark:group-hover:text-white'
+            }`}
+          />
+          {!isSidebarCollapsed && (
+            <span className="truncate leading-none">{item.label}</span>
+          )}
         </Link>
       );
     });
 
-  const avatarSrc =
-    user?.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=2563eb&color=fff&size=80`;
-
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-
   return (
-    <div className={`h-screen flex bg-slate-50/70 dark:bg-[#09090B] text-slate-900 dark:text-white overflow-hidden font-sans transition-colors duration-200 ${isDark ? 'dark bg-[#09090B]' : ''}`}>
-      {/* ── Sidebar: Desktop ───────────────────────────────────────────────── */}
+    <div className="flex h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-white overflow-hidden">
+      {/* ── Desktop / Tablet Sidebar ────────────────────────────────────────── */}
       <aside
-        className={`hidden md:flex flex-col bg-white dark:bg-[#121212] border-r border-slate-200/80 dark:border-zinc-800 h-screen transition-all duration-300 relative z-30
-          ${isSidebarCollapsed ? 'w-20' : 'w-64'}
-        `}
+        className={`hidden md:flex flex-col bg-white dark:bg-[#121212] border-r border-slate-200 dark:border-zinc-800 transition-all duration-300 relative z-30 flex-shrink-0 ${
+          isSidebarCollapsed ? 'w-16' : 'w-60'
+        }`}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 dark:border-zinc-800 flex-shrink-0">
-          {!isSidebarCollapsed ? (
-            <Logo size="sm" showText={true} />
-          ) : (
-            <div className="mx-auto">
-              <Logo size="sm" showText={false} />
-            </div>
-          )}
+        {/* Brand Header */}
+        <div className="h-16 flex items-center px-4 border-b border-slate-100 dark:border-zinc-800 overflow-hidden flex-shrink-0">
+          <Logo size="sm" showText={!isSidebarCollapsed} />
         </div>
 
         {/* Collapse Toggle */}
@@ -256,54 +251,60 @@ export const DashboardLayout = () => {
       </aside>
 
       {/* ── Main Workspace ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* iOS Glassmorphism Header Navbar */}
-        <header className="h-16 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-zinc-800/60 px-4 sm:px-6 flex items-center justify-between z-20 flex-shrink-0 transition-all duration-200 shadow-2xs">
-          <div className="flex items-center gap-3">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
+        {/* iOS Glassmorphism Header Navbar — Fully Responsive across Tablet & Mobile */}
+        <header className="h-16 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl border-b border-slate-200/60 dark:border-zinc-800/60 px-3 sm:px-6 flex items-center justify-between z-20 flex-shrink-0 transition-all duration-200 shadow-2xs gap-2">
+          {/* Left: Drawer trigger + Page Title */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open mobile menu"
-              className="md:hidden text-slate-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-white p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-95 cursor-pointer"
+              className="md:hidden text-slate-700 dark:text-zinc-300 hover:text-blue-600 dark:hover:text-white p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all active:scale-95 cursor-pointer flex-shrink-0"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-zinc-800 border border-blue-200/60 dark:border-zinc-700 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-2xs">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-zinc-800 border border-blue-200/60 dark:border-zinc-700 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-2xs flex-shrink-0">
                 {React.createElement(
                   navItems.find(item => item.path === location.pathname)?.icon || LayoutDashboard,
                   { className: 'w-4 h-4' }
                 )}
               </div>
-              <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-xs sm:text-sm md:text-base font-extrabold text-slate-900 dark:text-white tracking-tight whitespace-nowrap truncate">
                 {getPageTitle()}
               </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3.5">
-            {/* Quick Search */}
-            <div className="relative max-w-xs hidden sm:block">
+          {/* Right: Actions & Workspace Pill */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            {/* Quick Search — Desktop only to prevent tablet crowding */}
+            <div className="relative hidden lg:block flex-shrink-0">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Quick search..."
-                className="pl-8 pr-3.5 py-1.5 bg-slate-100/90 dark:bg-zinc-800/90 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 w-44 transition-all"
+                className="pl-8 pr-3.5 py-1.5 bg-slate-100/90 dark:bg-zinc-800/90 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 w-32 xl:w-44 transition-all"
               />
             </div>
 
             {/* Notification Bell */}
-            <NotificationBell />
+            <div className="flex-shrink-0">
+              <NotificationBell />
+            </div>
 
-            {/* Dark / Light Mode Toggle Button (Hidden on Mobile Header) */}
-            <div className="hidden sm:flex items-center">
+            {/* Dark / Light Mode Toggle Button */}
+            <div className="hidden sm:flex items-center flex-shrink-0">
               <ThemeToggle />
             </div>
 
-            {/* Workspace Pill */}
-            <div className="hidden md:flex items-center gap-1.5 bg-blue-50/80 dark:bg-zinc-800/90 border border-blue-200/70 dark:border-zinc-700 px-3 py-1.5 rounded-full text-xs font-bold text-blue-700 dark:text-zinc-200 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Workspace: {user?.companyName || 'Enterprise CRM'}</span>
+            {/* Workspace Pill — Perfectly fitted for Tablet & Mobile viewports */}
+            <div className="hidden md:flex items-center gap-1.5 bg-blue-50/80 dark:bg-zinc-800/90 border border-blue-200/70 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold text-blue-700 dark:text-zinc-200 shadow-2xs flex-shrink-0">
+              <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse flex-shrink-0" />
+              <Building2 className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <span className="truncate max-w-[85px] sm:max-w-[120px] lg:max-w-[180px]">
+                {user?.companyName || 'Enterprise CRM'}
+              </span>
             </div>
           </div>
         </header>
