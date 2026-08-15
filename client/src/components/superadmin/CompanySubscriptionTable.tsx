@@ -526,11 +526,8 @@ export const CompanySubscriptionTable = () => {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2.5">
-                <Button variant="outline" size="sm" onClick={() => setSelectedSubDetail(null)} className="rounded-xl px-4">
-                  Close
-                </Button>
-                <Button variant="primary" size="sm" onClick={() => { handleOpenEdit(selectedSubDetail); setSelectedSubDetail(null); }} className="rounded-xl px-4">
+              <div className="pt-2 flex justify-end">
+                <Button variant="primary" size="sm" onClick={() => { handleOpenEdit(selectedSubDetail); setSelectedSubDetail(null); }} className="rounded-xl px-4 w-full sm:w-auto">
                   Edit Subscription
                 </Button>
               </div>

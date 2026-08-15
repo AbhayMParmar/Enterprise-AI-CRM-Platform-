@@ -640,16 +640,13 @@ export const UserManagement = () => {
               </div>
 
               {/* Modal Footer Action Buttons */}
-              <div className="pt-2 flex justify-end gap-2.5">
-                <Button variant="outline" size="sm" onClick={() => setSelectedUserDetail(null)} className="rounded-xl px-4">
-                  Close
-                </Button>
-                {currentUser?.role === 'SuperAdmin' && selectedUserDetail.role !== 'SuperAdmin' && selectedUserDetail.role !== 'SUPER_ADMIN' && (
-                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }} className="rounded-xl px-4">
+              {currentUser?.role === 'SuperAdmin' && selectedUserDetail.role !== 'SuperAdmin' && selectedUserDetail.role !== 'SUPER_ADMIN' && (
+                <div className="pt-2 flex justify-end">
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }} className="rounded-xl px-4 w-full sm:w-auto">
                     Delete Account
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

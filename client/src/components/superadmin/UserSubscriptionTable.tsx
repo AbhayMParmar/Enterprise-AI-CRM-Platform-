@@ -346,16 +346,13 @@ export const UserSubscriptionTable = () => {
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2.5">
-                <Button variant="outline" size="sm" onClick={() => setSelectedUserMapping(null)} className="rounded-xl px-4">
-                  Close
-                </Button>
-                {selectedUserMapping.role !== 'SUPER_ADMIN' && selectedUserMapping.role !== 'SuperAdmin' && (
-                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserMapping.id, selectedUserMapping.name); setSelectedUserMapping(null); }} className="rounded-xl px-4">
+              {selectedUserMapping.role !== 'SUPER_ADMIN' && selectedUserMapping.role !== 'SuperAdmin' && (
+                <div className="pt-2 flex justify-end">
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserMapping.id, selectedUserMapping.name); setSelectedUserMapping(null); }} className="rounded-xl px-4 w-full sm:w-auto">
                     Delete Account
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

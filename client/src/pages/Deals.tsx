@@ -607,11 +607,8 @@ export const Deals = () => {
               </div>
 
               {/* Modal Footer Buttons */}
-              <div className="pt-2 flex justify-end gap-2.5">
-                <Button variant="outline" size="sm" onClick={() => setSelectedDeal(null)} className="rounded-xl px-4">
-                  Close
-                </Button>
-                {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin' || currentUser?.role === 'SalesManager') && (
+              {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin' || currentUser?.role === 'SalesManager') && (
+                <div className="pt-2 flex justify-end">
                   <Button
                     variant="danger"
                     size="sm"
@@ -619,12 +616,12 @@ export const Deals = () => {
                       handleDeleteDeal(selectedDeal.id);
                       setSelectedDeal(null);
                     }}
-                    className="rounded-xl px-4"
+                    className="rounded-xl px-4 w-full sm:w-auto"
                   >
                     Delete Opportunity
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

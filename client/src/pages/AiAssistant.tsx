@@ -253,8 +253,8 @@ export const AiAssistant = () => {
             </div>
           </div>
 
-          {/* ── Tab bar ─────────────────────────────────────────────── */}
-          <div className="relative z-10 flex items-center gap-1.5 px-3 sm:px-4 pb-2.5 border-t border-white/10">
+          {/* ── Tab bar (Fully Responsive Side-by-Side Equal Width Tabs) ─────────────────────────────── */}
+          <div className="relative z-10 flex items-center gap-1 sm:gap-2 px-2 sm:px-4 pb-2 border-t border-white/10 w-full overflow-x-auto no-scrollbar scrollbar-none">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = activeTab === t.id;
@@ -262,14 +262,14 @@ export const AiAssistant = () => {
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap select-none mt-2 cursor-pointer ${
+                  className={`flex-1 min-w-[95px] xs:min-w-0 flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl text-[10px] xs:text-[11px] sm:text-xs font-extrabold transition-all duration-200 whitespace-nowrap select-none mt-1.5 cursor-pointer ${
                     active
                       ? 'bg-white text-blue-600 dark:bg-[#121212] dark:text-white shadow-md'
                       : 'bg-white/10 hover:bg-white/20 text-blue-100 border border-white/15'
                   }`}
                 >
                   <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                  <span>{t.label}</span>
+                  <span className="truncate">{t.label}</span>
                 </button>
               );
             })}
@@ -388,17 +388,17 @@ export const AiAssistant = () => {
 
               {/* Quick prompts + Attachment + Input */}
               <div className="flex-shrink-0 px-3 sm:px-4 pt-2 pb-2.5 sm:pb-3 flex flex-col gap-2 sm:gap-2.5 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/90 dark:bg-[#18181B]">
-                {/* 6 Small Content Boxes / Quick Prompt Chips (Fully Responsive Horizontal Scroll Bar) */}
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 min-w-0 flex-nowrap touch-pan-x select-none">
-                  <span className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 font-bold whitespace-nowrap flex-shrink-0 mr-0.5 uppercase tracking-wider">
-                    Try:
+                {/* 6 Small Content Boxes / Quick Prompt Chips (Fully Responsive Horizontal Scroll Bar with Touch Panning) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-1 min-w-0 flex-nowrap touch-pan-x select-none w-full">
+                  <span className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 font-extrabold whitespace-nowrap flex-shrink-0 mr-0.5 uppercase tracking-wider">
+                    TRY:
                   </span>
                   {QUICK_PROMPTS.map((q) => (
                     <button
                       key={q.label}
                       type="button"
                       onClick={() => handleSendCopilot(undefined, q.text)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all duration-150 active:scale-95 bg-blue-50/90 dark:bg-zinc-800/90 hover:bg-blue-100 dark:hover:bg-zinc-700 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-zinc-700/80 shadow-2xs cursor-pointer"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all duration-150 active:scale-95 bg-blue-50/90 dark:bg-zinc-800/90 hover:bg-blue-100 dark:hover:bg-zinc-700 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-zinc-700/80 shadow-2xs cursor-pointer"
                     >
                       <span>{q.icon}</span>
                       <span>{q.label}</span>
