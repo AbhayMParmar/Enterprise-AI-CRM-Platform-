@@ -248,8 +248,8 @@ export const TasksPage = () => {
               tasks.map((task) => (
                 <div
                   key={task._id}
-                  className={`p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors ${
-                    task.status === 'Completed' ? 'bg-slate-50/40 opacity-70' : ''
+                  className={`p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white dark:bg-[#121212] hover:bg-slate-50/80 dark:hover:bg-zinc-800/80 transition-colors border-b border-slate-100 dark:border-zinc-800 ${
+                    task.status === 'Completed' ? 'opacity-65' : ''
                   }`}
                 >
                   <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -257,38 +257,38 @@ export const TasksPage = () => {
                       type="checkbox"
                       checked={task.status === 'Completed'}
                       onChange={() => handleToggleTaskStatus(task._id, task.status)}
-                      className="mt-1 w-4 h-4 rounded text-brand-primary border-slate-300 focus:ring-brand-primary cursor-pointer"
+                      className="mt-1 w-4 h-4 rounded text-brand-primary border-slate-300 dark:border-zinc-700 focus:ring-brand-primary cursor-pointer"
                     />
 
                     <div className="flex flex-col gap-1 min-w-0 flex-1 sm:cursor-default cursor-pointer" onClick={() => { if (window.innerWidth < 768) setSelectedTask(task); }}>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className={`font-bold text-xs ${task.status === 'Completed' ? 'line-through text-slate-500' : 'text-brand-textPrimary'}`}>
+                        <h4 className={`font-bold text-xs ${task.status === 'Completed' ? 'line-through text-slate-400 dark:text-zinc-500' : 'text-slate-900 dark:text-white'}`}>
                           {task.title}
                         </h4>
                         {getPriorityBadge(task.priority)}
                       </div>
 
                       {task.description && (
-                        <p className="text-[11px] text-slate-500 line-clamp-1">{task.description}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-zinc-400 line-clamp-1">{task.description}</p>
                       )}
 
-                      <div className="flex items-center gap-4 text-[10px] text-slate-400 mt-1 flex-wrap">
+                      <div className="flex items-center gap-4 text-[10px] text-slate-500 dark:text-zinc-400 mt-1 flex-wrap font-medium">
                         {task.dueDate && (
-                          <span className="flex items-center gap-1 text-slate-600 font-medium">
-                            <Clock className="w-3 h-3 text-brand-primary" />
+                          <span className="flex items-center gap-1 text-slate-600 dark:text-zinc-300 font-semibold">
+                            <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                             Due: {new Date(task.dueDate).toLocaleDateString()}
                           </span>
                         )}
                         {task.customer && (
-                          <span className="flex items-center gap-1">
-                            <Building2 className="w-3 h-3" />
+                          <span className="flex items-center gap-1 text-slate-600 dark:text-zinc-300">
+                            <Building2 className="w-3 h-3 text-slate-400" />
                             {task.customer.company || task.customer.name}
                           </span>
                         )}
                         {task.assignedTo && (
-                          <span className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            Assigned to: {task.assignedTo.name}
+                          <span className="flex items-center gap-1 text-slate-600 dark:text-zinc-300">
+                            <User className="w-3 h-3 text-slate-400" />
+                            Assigned: {task.assignedTo.name}
                           </span>
                         )}
                       </div>

@@ -31,6 +31,21 @@
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
+   PROJECT-WIDE SCROLLBAR HIDING (Preserves full scrolling, hides native visual bar)
+   ─────────────────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 0px !important;
+  height: 0px !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+* {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;     /* Firefox */
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
    PROJECT-WIDE PURE DARK BLACK, GRAY & WHITE THEME
    ─────────────────────────────────────────────────────────────────────────── */
 html.dark {
@@ -56,12 +71,10 @@ html.dark .bg-slate-50\/80 {
 
 html.dark .bg-slate-100,
 html.dark .bg-slate-100\/80,
-html.dark .bg-slate-100\/90 {
+html.dark .bg-slate-100\/90,
+html.dark .bg-slate-200,
+html.dark .bg-slate-300 {
   background-color: #18181b !important;
-}
-
-html.dark .bg-slate-200 {
-  background-color: #27272a !important;
 }
 
 /* Typography in Dark Mode (Crisp White & Light Gray) */
@@ -119,7 +132,7 @@ html.dark textarea {
   border-color: #27272a !important;
 }
 
-/* Explicit Native Option Styling to Prevent Grey Stretched Overlay Glitch */
+/* Explicit Native Option Styling */
 select option {
   background-color: #ffffff !important;
   color: #0f172a !important;

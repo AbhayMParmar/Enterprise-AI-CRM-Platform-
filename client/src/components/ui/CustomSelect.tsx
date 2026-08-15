@@ -124,10 +124,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                         setIsOpen(false);
                         setSearchTerm('');
                       }}
-                      className={`w-full px-3 py-2 text-left text-xs rounded-xl flex items-center justify-between transition-colors cursor-pointer ${
+                      className={`w-full px-3.5 py-2.5 text-left text-xs rounded-xl flex items-center justify-between transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 font-bold'
-                          : 'hover:bg-slate-100 dark:hover:bg-zinc-800/80 text-slate-700 dark:text-zinc-200 font-medium'
+                          ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 font-bold border border-blue-200/80 dark:border-blue-800/80'
+                          : 'hover:bg-slate-100/90 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-100 font-medium'
                       }`}
                     >
                       <div className="flex flex-col truncate pr-2">

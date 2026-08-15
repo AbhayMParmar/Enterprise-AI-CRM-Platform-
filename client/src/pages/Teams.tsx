@@ -168,14 +168,6 @@ export const Teams = () => {
                   <CardBody className="flex flex-col gap-3.5">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-bold text-brand-textSecondary dark:text-zinc-400 uppercase tracking-widest">Active Members ({team.members.length})</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => { e.stopPropagation(); openInviteModal(team); }}
-                        className="text-[10px] font-bold text-blue-600 dark:text-blue-400 p-0 h-auto hover:bg-transparent"
-                      >
-                        + Add Member
-                      </Button>
                     </div>
                     
                     <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
