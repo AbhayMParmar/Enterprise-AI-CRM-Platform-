@@ -498,10 +498,10 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     }
 
     if (!token) {
-      res.status(401).json({
+      res.status(200).json({
         success: false,
         authenticated: false,
-        message: 'Refresh token not found',
+        message: 'No active session',
       });
       return;
     }
@@ -518,7 +518,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
         console.log('[AuthRefresh] Refresh token verification failed or expired');
       }
       TokenService.clearRefreshTokenCookie(res);
-      res.status(401).json({
+      res.status(200).json({
         success: false,
         authenticated: false,
         message: 'Session invalid or expired',
@@ -535,7 +535,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
 
     if (!user) {
       TokenService.clearRefreshTokenCookie(res);
-      res.status(401).json({
+      res.status(200).json({
         success: false,
         authenticated: false,
         message: 'User account no longer exists',
