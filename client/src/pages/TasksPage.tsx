@@ -44,6 +44,9 @@ export const TasksPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
+  // Task Detail Modal State
+  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -257,7 +260,7 @@ export const TasksPage = () => {
                       className="mt-1 w-4 h-4 rounded text-brand-primary border-slate-300 focus:ring-brand-primary cursor-pointer"
                     />
 
-                    <div className="flex flex-col gap-1 min-w-0">
+                    <div className="flex flex-col gap-1 min-w-0 flex-1 cursor-pointer" onClick={() => setSelectedTask(task)}>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className={`font-bold text-xs ${task.status === 'Completed' ? 'line-through text-slate-500' : 'text-brand-textPrimary'}`}>
                           {task.title}
@@ -294,7 +297,7 @@ export const TasksPage = () => {
 
                   <div className="flex items-center gap-2 self-end sm:self-center">
                     <button
-                      onClick={() => handleDeleteTask(task._id)}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteTask(task._id); }}
                       className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />

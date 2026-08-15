@@ -38,6 +38,9 @@ export const CalendarPage = () => {
   const [deals, setDeals] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Appointment Detail Popup Modal State
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+
   // Schedule Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -171,7 +174,7 @@ export const CalendarPage = () => {
                 </div>
               ) : (
                 events.map((evt) => (
-                  <div key={evt._id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors">
+                  <div key={evt._id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/70 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer" onClick={() => setSelectedEvent(evt)}>
                     <div className="flex items-start gap-3">
                       <div className="p-3 bg-brand-primary/10 text-brand-primary dark:bg-blue-950/60 dark:text-blue-400 rounded-xl flex flex-col items-center justify-center min-w-[54px] border border-brand-primary/20 dark:border-blue-800">
                         <span className="text-[10px] font-bold uppercase">{new Date(evt.startTime).toLocaleString('default', { month: 'short' })}</span>
@@ -200,7 +203,7 @@ export const CalendarPage = () => {
                     </div>
 
                     <button
-                      onClick={() => handleDeleteEvent(evt._id)}
+                      onClick={(e) => { e.stopPropagation(); handleDeleteEvent(evt._id); }}
                       className="p-1 text-slate-400 dark:text-zinc-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded transition-colors self-end sm:self-center cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -313,6 +316,93 @@ export const CalendarPage = () => {
           </div>
         )}
       </AnimatePresence>
+      {/* ── Appointment Detail Popup Container (Mobile Bottom Sheet Modal) ────────────────────────── */}
+      {selectedEvent && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#121212] w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-250">
+            {/* Top Center Drag Pill Indicator Handle (Clickable Close Trigger) */}
+            <div className="pt-3 pb-2 flex justify-center border-b border-slate-100 dark:border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setSelectedEvent(null)}
+                title="Close Modal"
+                className="w-14 h-1.5 bg-slate-300 dark:bg-zinc-700 hover:bg-slate-400 dark:hover:bg-zinc-600 rounded-full transition-colors cursor-pointer"
+              />
+            </div>
+
+            {/* Header Title Bar */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-zinc-800/80 bg-white dark:bg-[#121212]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                    {selectedEvent.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Sales Appointment Schedule</p>
+                </div>
+                {getTypeBadge(selectedEvent.type)}
+              </div>
+            </div>
+
+            {/* Modal Body — Vertically Stacked Data Layout */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+              {/* Date & Time Range Box */}
+              <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80 flex flex-col">
+                <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Scheduled Date &amp; Time</span>
+                <span className="font-extrabold text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">
+                  {new Date(selectedEvent.startTime).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+                <span className="font-semibold text-slate-700 dark:text-zinc-300 text-xs mt-0.5">
+                  {new Date(selectedEvent.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedEvent.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+
+              {/* Data Properties — Vertically Stacked List */}
+              <div className="space-y-3 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Associated Customer</span>
+                  <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedEvent.customer?.name || 'N/A'} {selectedEvent.customer?.company ? `(${selectedEvent.customer.company})` : ''}</span>
+                </div>
+
+                {selectedEvent.location && (
+                  <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Location / Meeting URL</span>
+                    <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5 break-all">{selectedEvent.location}</span>
+                  </div>
+                )}
+
+                {selectedEvent.deal && (
+                  <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Linked Opportunity</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-xs mt-0.5">{selectedEvent.deal.title} (${selectedEvent.deal.value?.toLocaleString()})</span>
+                  </div>
+                )}
+
+                {selectedEvent.createdBy && (
+                  <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Scheduled By</span>
+                    <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedEvent.createdBy.name}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex justify-end">
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => {
+                    handleDeleteEvent(selectedEvent._id);
+                    setSelectedEvent(null);
+                  }}
+                  className="rounded-xl px-4 w-full sm:w-auto"
+                >
+                  Cancel Appointment
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

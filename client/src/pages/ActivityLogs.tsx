@@ -31,6 +31,9 @@ export const ActivityLogs = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Audit Log Detail Modal State
+  const [selectedLog, setSelectedLog] = useState<ActivityLogSession | null>(null);
+
   const fetchLogs = async () => {
     setIsLoading(true);
     try {
@@ -123,23 +126,23 @@ export const ActivityLogs = () => {
                   </tr>
                 ) : (
                   logs.map((log) => (
-                    <tr key={log._id} className="hover:bg-slate-50/30 transition-colors">
+                    <tr key={log._id} onClick={() => setSelectedLog(log)} className="hover:bg-slate-50/50 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer">
                       <td className="px-6 py-4">{getActionIcon(log.action)}</td>
-                      <td className="px-6 py-4 font-bold text-slate-800">
-                        <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] uppercase font-semibold text-slate-700">
+                      <td className="px-6 py-4 font-bold text-slate-800 dark:text-zinc-100">
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">
                           {getActionLabel(log.action)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-semibold text-brand-textPrimary">{log.userId?.name || 'Workspace User'}</span>
-                          <span className="text-[10px] text-brand-textSecondary">{log.userId?.email || ''}</span>
+                          <span className="font-semibold text-brand-textPrimary dark:text-zinc-100">{log.userId?.name || 'Workspace User'}</span>
+                          <span className="text-[10px] text-brand-textSecondary dark:text-zinc-400">{log.userId?.email || ''}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 font-mono text-[10px] max-w-sm truncate select-all">
+                      <td className="px-6 py-4 text-slate-600 dark:text-zinc-400 font-mono text-[10px] max-w-sm truncate select-all">
                         {log.details ? JSON.stringify(log.details) : '-'}
                       </td>
-                      <td className="px-6 py-4 text-right text-brand-textSecondary font-medium">
+                      <td className="px-6 py-4 text-right text-brand-textSecondary dark:text-zinc-400 font-medium">
                         {new Date(log.createdAt).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' })}
                       </td>
                     </tr>
@@ -151,8 +154,8 @@ export const ActivityLogs = () => {
 
           {/* Pagination controls */}
           {totalPages > 1 && (
-            <div className="px-6 py-4 border-t border-brand-border bg-slate-50/50 flex items-center justify-between">
-              <span className="text-xs text-brand-textSecondary">
+            <div className="px-6 py-4 border-t border-brand-border dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900 flex items-center justify-between">
+              <span className="text-xs text-brand-textSecondary dark:text-zinc-400">
                 Page {page} of {totalPages}
               </span>
               <div className="flex gap-2">
@@ -177,6 +180,83 @@ export const ActivityLogs = () => {
           )}
         </CardBody>
       </Card>
+
+      {/* ── Audit Log Detail Popup Container (Mobile Bottom Sheet Modal) ────────────────────────── */}
+      {selectedLog && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999] animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#121212] w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl border border-slate-200 dark:border-zinc-800 max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-5 duration-250">
+            {/* Top Center Drag Pill Indicator Handle (Clickable Close Trigger) */}
+            <div className="pt-3 pb-2 flex justify-center border-b border-slate-100 dark:border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setSelectedLog(null)}
+                title="Close Modal"
+                className="w-14 h-1.5 bg-slate-300 dark:bg-zinc-700 hover:bg-slate-400 dark:hover:bg-zinc-600 rounded-full transition-colors cursor-pointer"
+              />
+            </div>
+
+            {/* Header Title Bar */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-zinc-800/80 bg-white dark:bg-[#121212]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 bg-slate-100 dark:bg-zinc-800 rounded-xl">
+                    {getActionIcon(selectedLog.action)}
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                      {getActionLabel(selectedLog.action)}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">System Audit Event Record</p>
+                  </div>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-black bg-blue-100 text-blue-900 border border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800">
+                  {selectedLog.action}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Body — Vertically Stacked Data Layout */}
+            <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 text-xs">
+              {/* Timestamp Box */}
+              <div className="p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80 flex flex-col">
+                <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Event Time</span>
+                <span className="font-extrabold text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">
+                  {new Date(selectedLog.createdAt).toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'medium' })}
+                </span>
+              </div>
+
+              {/* Data Properties — Vertically Stacked List */}
+              <div className="space-y-3 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Operator Name</span>
+                  <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedLog.userId?.name || 'Workspace User'}</span>
+                </div>
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Operator Email</span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedLog.userId?.email || 'N/A'}</span>
+                </div>
+
+                {selectedLog.userId?.role && (
+                  <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Role</span>
+                    <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedLog.userId.role}</span>
+                  </div>
+                )}
+
+                {selectedLog.details && (
+                  <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mb-1">Audit Details Payload</span>
+                    <pre className="p-3 bg-slate-100 dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 rounded-xl font-mono text-[11px] overflow-x-auto whitespace-pre-wrap break-all border border-slate-200/60 dark:border-zinc-800">
+                      {JSON.stringify(selectedLog.details, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
