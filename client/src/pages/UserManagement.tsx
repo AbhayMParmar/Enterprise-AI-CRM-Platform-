@@ -370,7 +370,9 @@ export const UserManagement = () => {
                   return (
                     <tr
                       key={u._id}
-                      onClick={() => setSelectedUserDetail(u)}
+                      onClick={() => {
+                        if (window.innerWidth < 768) setSelectedUserDetail(u);
+                      }}
                       className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer"
                     >
                       {currentUser?.role === 'SuperAdmin' && (
@@ -533,9 +535,9 @@ export const UserManagement = () => {
         </div>
       )}
 
-      {/* Mobile & Desktop User Detail Popup Modal */}
+      {/* Mobile User Detail Popup Modal (Mobile Devices Only) */}
       {selectedUserDetail && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
             {/* Header with Close Icon (X) */}
             <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">

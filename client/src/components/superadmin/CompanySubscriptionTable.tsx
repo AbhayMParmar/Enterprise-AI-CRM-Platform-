@@ -270,7 +270,9 @@ export const CompanySubscriptionTable = () => {
                     return (
                       <tr
                         key={comp.id}
-                        onClick={() => setSelectedSubDetail(comp)}
+                        onClick={() => {
+                          if (window.innerWidth < 768) setSelectedSubDetail(comp);
+                        }}
                         className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                       >
                         <td className="p-3.5">
@@ -439,9 +441,9 @@ export const CompanySubscriptionTable = () => {
         </div>
       )}
 
-      {/* Mobile & Desktop Subscription Detail Popup Modal */}
+      {/* Mobile Subscription Detail Popup Modal (Mobile Devices Only) */}
       {selectedSubDetail && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-lg w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
             {/* Header with Close Icon (X) */}
             <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">

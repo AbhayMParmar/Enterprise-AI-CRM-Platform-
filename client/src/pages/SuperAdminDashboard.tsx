@@ -421,7 +421,9 @@ export const SuperAdminDashboard = () => {
                       companies.map((comp) => (
                         <tr
                           key={comp.id}
-                          onClick={() => openCompanyDetail(comp.id)}
+                          onClick={() => {
+                            if (window.innerWidth < 768) openCompanyDetail(comp.id);
+                          }}
                           className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 transition-colors cursor-pointer"
                         >
                           <td className="p-3.5">

@@ -379,7 +379,9 @@ export const Deals = () => {
                   deals.map((deal) => (
                     <tr
                       key={deal.id}
-                      onClick={() => setSelectedDeal(deal)}
+                      onClick={() => {
+                        if (window.innerWidth < 768) setSelectedDeal(deal);
+                      }}
                       className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                     >
                       <td className="px-6 py-4 font-semibold text-brand-textPrimary">{deal.title}</td>
