@@ -388,9 +388,7 @@ export const Deals = () => {
                   deals.map((deal) => (
                     <tr
                       key={deal.id}
-                      onClick={() => {
-                        if (window.innerWidth < 768) setSelectedDeal(deal);
-                      }}
+                      onClick={() => setSelectedDeal(deal)}
                       className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                     >
                       <td className="px-6 py-4 font-semibold text-brand-textPrimary">{deal.title}</td>
@@ -406,8 +404,11 @@ export const Deals = () => {
                       <td className="px-6 py-4 text-right">
                         {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin' || currentUser?.role === 'SalesManager') && (
                           <button
-                            onClick={() => handleDeleteDeal(deal.id)}
-                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDeal(deal.id);
+                            }}
+                            className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -530,6 +531,102 @@ export const Deals = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Deal Detail Popup Modal (Mobile Devices Only — Premium iOS Card Sheet) */}
+      {selectedDeal && (
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end justify-center p-3 z-[9999]">
+          <div className="bg-white dark:bg-[#121212] rounded-3xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col animate-in slide-in-from-bottom-5 duration-200">
+            {/* Top iOS Sheet Drag Pill Bar — Tap to Close Modal */}
+            <button
+              type="button"
+              onClick={() => setSelectedDeal(null)}
+              title="Tap to Close Modal"
+              className="w-14 h-1.5 bg-slate-300 hover:bg-slate-400 dark:bg-zinc-600 dark:hover:bg-zinc-500 rounded-full mx-auto mt-2.5 mb-1 cursor-pointer transition-colors block"
+            />
+
+            {/* Header: Seamless Light/Dark Theme (No Top Right X Button) */}
+            <div className="px-4 sm:px-5 py-3 border-b border-slate-100 dark:border-zinc-800/80">
+              <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">Sales Opportunity Inspection</span>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-tight truncate">{selectedDeal.title}</h3>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 truncate">
+                Customer: <strong className="text-slate-800 dark:text-zinc-200 font-semibold">{selectedDeal.customer?.company || selectedDeal.customer?.name || 'Direct Client'}</strong>
+              </p>
+            </div>
+
+            {/* Modal Body — Vertically Stacked Data Layout */}
+            <div className="p-4 sm:p-5 space-y-3.5 text-xs">
+              {/* Stage Status & Value Pill Cards */}
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80">
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Opportunity Stage</span>
+                  <span className={`inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase border self-start ${
+                    selectedDeal.stage?.toLowerCase().includes('won')
+                      ? 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800'
+                      : selectedDeal.stage?.toLowerCase().includes('lost')
+                      ? 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-800'
+                      : 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800'
+                  }`}>
+                    {selectedDeal.stage}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-400 dark:text-zinc-500 font-bold text-[10px] uppercase tracking-wider">Deal Value</span>
+                  <span className="font-black text-slate-900 dark:text-white text-sm block mt-0.5">
+                    ${selectedDeal.value?.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Data Properties — Vertically Stacked List */}
+              <div className="space-y-3 bg-slate-50/70 dark:bg-zinc-900/40 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800/60 flex flex-col">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Win Probability</span>
+                  <span className="font-extrabold text-blue-600 dark:text-blue-400 text-xs mt-0.5">{selectedDeal.probability}%</span>
+                </div>
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Assigned Representative</span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">{selectedDeal.assignedTo?.name || 'Unassigned'}</span>
+                </div>
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Expected Close Date</span>
+                  <span className="font-semibold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">
+                    {selectedDeal.expectedCloseDate ? new Date(selectedDeal.expectedCloseDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Not Scheduled'}
+                  </span>
+                </div>
+
+                <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Opportunity Created</span>
+                  <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">
+                    {new Date(selectedDeal.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Modal Footer Buttons */}
+              <div className="pt-2 flex justify-end gap-2.5">
+                <Button variant="outline" size="sm" onClick={() => setSelectedDeal(null)} className="rounded-xl px-4">
+                  Close
+                </Button>
+                {(currentUser?.role === 'SuperAdmin' || currentUser?.role === 'Admin' || currentUser?.role === 'SalesManager') && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => {
+                      handleDeleteDeal(selectedDeal.id);
+                      setSelectedDeal(null);
+                    }}
+                    className="rounded-xl px-4"
+                  >
+                    Delete Opportunity
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
