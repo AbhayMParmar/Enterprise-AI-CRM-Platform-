@@ -110,13 +110,24 @@ html.dark .hover\:text-brand-textPrimary:hover {
   color: #ffffff !important;
 }
 
-/* Form Controls in Dark Mode */
+/* Form Controls & Dropdowns */
 html.dark input:not([type='checkbox']):not([type='radio']):not([type='button']):not([type='submit']),
 html.dark select,
 html.dark textarea {
   background-color: #18181b !important;
   color: #ffffff !important;
   border-color: #27272a !important;
+}
+
+/* Explicit Native Option Styling to Prevent Grey Stretched Overlay Glitch */
+select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html.dark select option {
+  background-color: #18181b !important;
+  color: #ffffff !important;
 }
 
 html.dark input::placeholder,
@@ -148,185 +159,14 @@ html.dark .premium-shadow {
   .glass-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-  }
-  
-  .glass-card-dark {
-    background: rgba(15, 23, 42, 0.9);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .text-glow {
-    text-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .smooth-shadow {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05), 0 0 0 1px rgb(0 0 0 / 0.02);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   }
 
   .premium-shadow {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.04), 0 4px 6px -4px rgb(0 0 0 / 0.04), 0 0 0 1px rgb(0 0 0 / 0.03);
+    box-shadow: 0 20px 40px -15px rgba(37, 99, 235, 0.12);
   }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Progressive mobile viewport height — accounts for browser chrome on iOS/Android */
-  .mobile-full-height {
-    min-height: 100vh;           /* universal baseline */
-    min-height: 100svh;          /* small viewport (excludes chrome) — iOS Safari 15.4+ */
-    min-height: 100dvh;          /* dynamic viewport (resizes on scroll) — modern standard */
-  }
-}
-
-/* Micro-animations */
-@keyframes pulse-slow {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 80px;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-html::-webkit-scrollbar {
-  display: none;
-}
-
-body {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-body::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide all scrollbars globally — scrolling remains functional */
-* {
-  -ms-overflow-style: none; /* IE/Edge */
-  scrollbar-width: none;    /* Firefox */
-}
-
-*::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
-/* Hide native browser password reveal (prevents duplicate eye icons) */
-input[type='password']::-ms-reveal,
-input[type='password']::-ms-clear {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-    .lg\:pt-24 {
-        padding-top: 8rem;
-    }
-    .lg\:gap-12 {
-        gap: 3rem;
-        padding-top: 2rem;
-    }
-}
-
-/* Mobile/Tablet Auth Form Animations */
-@keyframes slideUpFade {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes shakeError {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-5px); }
-  40%, 80% { transform: translateX(5px); }
-}
-
-@keyframes popCheck {
-  0% { transform: scale(0.5); opacity: 0; }
-  70% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes pulseAura {
-  0%, 100% {
-    opacity: 0.2;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(1.06);
-  }
-}
-
-/* Prevent browser native input reveal & clear buttons globally */
-input::-ms-reveal,
-input::-ms-clear,
-input::-webkit-contacts-auto-fill-button,
-input::-webkit-credentials-auto-fill-button {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-/* Auth Form Animation Utility Classes — available at all viewports */
-.animate-slide-up {
-  animation: slideUpFade 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-shake {
-  animation: shakeError 0.38s ease-in-out;
-}
-
-.animate-pop-check {
-  animation: popCheck 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-.animate-pulse-aura {
-  animation: pulseAura 4s ease-in-out infinite;
-}
-
-/* Clean Hover & Active Button State */
-.btn-clean-hover {
-  background-color: #2563eb;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-clean-hover:hover {
-  background-color: #1d4ed8;
-  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.38), 0 4px 10px -2px rgba(37, 99, 235, 0.2);
-  transform: translateY(-2px);
-}
-
-.btn-clean-hover:active {
-  background-color: #1e40af;
-  transform: translateY(0px) scale(0.98);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }

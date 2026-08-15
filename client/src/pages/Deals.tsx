@@ -464,11 +464,11 @@ export const Deals = () => {
                       value={newCustomer}
                       onChange={(e) => setNewCustomer(e.target.value)}
                       required
-                      className="w-full px-3 py-2 text-sm bg-white border border-brand-border rounded-lg outline-none text-brand-textPrimary focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+                      className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded-xl outline-none text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                     >
-                      <option value="">Select Customer Contact...</option>
+                      <option value="" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Select Customer Contact...</option>
                       {customers.map((c) => (
-                        <option key={c._id} value={c._id}>{c.name} {c.company ? `(${c.company})` : ''}</option>
+                        <option key={c._id} value={c._id} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{c.name} {c.company ? `(${c.company})` : ''}</option>
                       ))}
                     </select>
                   </div>
@@ -488,14 +488,14 @@ export const Deals = () => {
                       <select
                         value={newStage}
                         onChange={(e) => setNewStage(e.target.value as DealStage)}
-                        className="w-full px-3 py-2 text-sm bg-white border border-brand-border rounded-lg outline-none text-brand-textPrimary focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded-xl outline-none text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                       >
-                        <option value="Lead">Lead In (10%)</option>
-                        <option value="Contacted">Contacted (25%)</option>
-                        <option value="Proposal">Proposal Sent (50%)</option>
-                        <option value="Negotiation">Negotiation (75%)</option>
-                        <option value="Won">Closed Won (100%)</option>
-                        <option value="Lost">Closed Lost (0%)</option>
+                        <option value="Lead" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Lead In (10%)</option>
+                        <option value="Contacted" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Contacted (25%)</option>
+                        <option value="Proposal" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Proposal Sent (50%)</option>
+                        <option value="Negotiation" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Negotiation (75%)</option>
+                        <option value="Won" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Closed Won (100%)</option>
+                        <option value="Lost" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Closed Lost (0%)</option>
                       </select>
                     </div>
                   </div>
@@ -513,11 +513,11 @@ export const Deals = () => {
                       <select
                         value={newAssignedTo}
                         onChange={(e) => setNewAssignedTo(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-white border border-brand-border rounded-lg outline-none text-brand-textPrimary focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+                        className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-brand-border dark:border-zinc-700 rounded-xl outline-none text-slate-900 dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer"
                       >
-                        <option value="">Unassigned</option>
+                        <option value="" className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">Unassigned</option>
                         {teamMembers.map((m) => (
-                          <option key={m._id} value={m._id}>{m.name}</option>
+                          <option key={m._id} value={m._id} className="bg-white dark:bg-zinc-900 text-slate-900 dark:text-white">{m.name}</option>
                         ))}
                       </select>
                     </div>
