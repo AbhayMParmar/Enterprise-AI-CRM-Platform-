@@ -24,6 +24,10 @@ import calendarRoutes from './routes/calendarRoutes';
 import notificationRoutes from './routes/notificationRoutes';
 import reportRoutes from './routes/reportRoutes';
 import profileRoutes from './routes/profileRoutes';
+import paymentRoutes from './routes/paymentRoutes';
+import companyRoutes from './routes/companyRoutes';
+import joinRequestRoutes from './routes/joinRequestRoutes';
+import packageRoutes from './routes/packageRoutes';
 import { apiLimiter, authLimiter, aiLimiter } from './middleware/rateLimiter';
 import { connectDB } from './config/db';
 
@@ -38,8 +42,8 @@ const app = express();
  */
 app.use(
   helmet({
-    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
-    crossOriginEmbedderPolicy: false,   // Must be false for OAuth iframes/popups
+    crossOriginOpenerPolicy: false,     // Disabled to allow Razorpay Checkout & OAuth popup postMessage communication
+    crossOriginEmbedderPolicy: false,   // Must be false for OAuth & Razorpay iframes/popups
     contentSecurityPolicy: false,        // CSP can be customized separately per deployment
   })
 );
@@ -49,7 +53,11 @@ app.use(
 // Allowed origins: local dev + production Vercel URL (set via CLIENT_URL env var)
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:3000',
   process.env.CLIENT_URL,
   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
 ].filter(Boolean) as string[];
@@ -57,19 +65,21 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (Postman, mobile apps, same-origin Vercel)
       if (!origin) return callback(null, true);
-      // Allow any *.vercel.app domain for preview deployments
       if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      console.error(`[CORS] Blocked request from origin: ${origin}`);   // ← ADDED: visibility
+      const corsError: any = new Error(`CORS: origin ${origin} not allowed`);
+      corsError.status = 403;   // ← ADDED: so it returns 403, not a bare 500
+      callback(corsError);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Company-Id'],
   })
 );
+
 
 // ─── Body Parsers ─────────────────────────────────────────────────────────────
 
@@ -115,6 +125,10 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/join-requests', joinRequestRoutes);
+app.use('/api/packages', packageRoutes);
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 

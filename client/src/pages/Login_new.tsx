@@ -19,7 +19,7 @@ export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState<'SalesRep' | 'SalesManager' | 'Admin' | 'SuperAdmin'>('SalesRep');
+  const [role, setRole] = useState<'SalesRep' | 'SalesManager'>('SalesRep');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -666,8 +666,6 @@ export const Login = () => {
                         >
                           <option value="SalesRep">Sales Representative (SalesRep)</option>
                           <option value="SalesManager">Sales Manager</option>
-                          <option value="Admin">Administrator (Admin)</option>
-                          <option value="SuperAdmin">Super Administrator (SuperAdmin)</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                           <ShieldAlert size={15} />

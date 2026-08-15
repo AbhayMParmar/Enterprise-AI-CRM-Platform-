@@ -6,7 +6,9 @@ export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     role: UserRole;
+    companyId?: string;
   };
+  companyId?: string;
 }
 
 export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
@@ -25,11 +27,17 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
       return;
     }
 
+    // Header override if passed (for company switching / superadmin context)
+    const headerCompanyId = req.headers['x-company-id'] as string | undefined;
+    const activeCompanyId = decoded.companyId || headerCompanyId;
+
     // Attach decoded user info to the request
     req.user = {
       id: decoded.id,
       role: decoded.role as UserRole,
+      companyId: activeCompanyId,
     };
+    req.companyId = activeCompanyId;
 
     next();
   } catch (error) {

@@ -1,13 +1,33 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-export type UserRole = 'SuperAdmin' | 'Admin' | 'SalesManager' | 'SalesRep';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'COMPANY_OWNER'
+  | 'SALES_MANAGER'
+  | 'SALES_REPRESENTATIVE'
+  // Legacy role aliases for backward compatibility:
+  | 'SuperAdmin'
+  | 'Admin'
+  | 'SalesManager'
+  | 'SalesRep';
+
+export type AccountStatus = 'PENDING' | 'PENDING_COMPANY' | 'PENDING_APPROVAL' | 'ACTIVE' | 'SUSPENDED' | 'REJECTED';
+
+export interface IUserCompanyMembership {
+  companyId: Types.ObjectId;
+  role: UserRole;
+}
 
 export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
   role: UserRole;
+  companyId?: Types.ObjectId;
+  companies: IUserCompanyMembership[];
+  accountStatus: AccountStatus;
+  invitedBy?: Types.ObjectId;
   avatar?: string;
   googleId?: string;
   phone?: string;
@@ -18,6 +38,16 @@ export interface IUser extends Document {
   emailOtpExpires?: Date;
   pendingEmail?: string;
   isVerified: boolean;
+  subscription: {
+    plan: 'trial' | 'basic' | 'medium' | 'premium';
+    status: 'trial' | 'active' | 'expired';
+    startDate?: Date;
+    endDate?: Date;
+    trialStartDate?: Date;
+    trialEndDate?: Date;
+    paymentId?: string;
+    orderId?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -45,8 +75,37 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['SuperAdmin', 'Admin', 'SalesManager', 'SalesRep'],
-      default: 'SalesRep',
+      enum: [
+        'SUPER_ADMIN',
+        'COMPANY_OWNER',
+        'SALES_MANAGER',
+        'SALES_REPRESENTATIVE',
+        'SuperAdmin',
+        'Admin',
+        'SalesRep',
+      ],
+      default: 'SALES_REPRESENTATIVE',
+      index: true,
+    },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      index: true,
+    },
+    companies: [
+      {
+        companyId: { type: Schema.Types.ObjectId, ref: 'Company' },
+        role: { type: String },
+      },
+    ],
+    accountStatus: {
+      type: String,
+      enum: ['PENDING', 'PENDING_COMPANY', 'PENDING_APPROVAL', 'ACTIVE', 'SUSPENDED', 'REJECTED'],
+      default: 'PENDING_COMPANY',
+    },
+    invitedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     },
     avatar: {
       type: String,
@@ -54,7 +113,7 @@ const userSchema = new Schema<IUser>(
     },
     googleId: {
       type: String,
-      sparse: true, // Allow multiple nulls for accounts registered via normal password flow
+      sparse: true,
     },
     phone: {
       type: String,
@@ -91,14 +150,45 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    subscription: {
+      plan: {
+        type: String,
+        enum: ['trial', 'basic', 'medium', 'premium'],
+        default: 'trial',
+      },
+      status: {
+        type: String,
+        enum: ['trial', 'active', 'expired'],
+        default: 'trial',
+      },
+      startDate: { type: Date },
+      endDate: { type: Date },
+      trialStartDate: {
+        type: Date,
+        default: Date.now,
+      },
+      trialEndDate: {
+        type: Date,
+        default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      },
+      paymentId: { type: String, default: '' },
+      orderId: { type: String, default: '' },
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Hash password before saving if it has been modified
+// Pre-save hook: normalize legacy roles to official uppercase role structure
 userSchema.pre<IUser>('save', async function (next) {
+  if (this.isModified('role')) {
+    if (this.role === 'SuperAdmin') this.role = 'SUPER_ADMIN';
+    if (this.role === 'Admin') this.role = 'COMPANY_OWNER';
+    if (this.role === 'SalesRep') this.role = 'SALES_REPRESENTATIVE';
+    if (this.role === 'SalesManager') this.role = 'SALES_MANAGER';
+  }
+
   if (!this.isModified('password')) return next();
   if (!this.password) return next();
 
@@ -118,3 +208,4 @@ userSchema.methods.comparePassword = async function (candidatePassword: string):
 };
 
 export const User = model<IUser>('User', userSchema);
+export default User;

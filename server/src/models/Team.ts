@@ -8,6 +8,7 @@ export interface ITeamMember {
 export interface ITeam extends Document {
   name: string;
   ownerId: Types.ObjectId;
+  companyId?: Types.ObjectId;
   members: ITeamMember[];
   createdAt: Date;
   updatedAt: Date;
@@ -24,6 +25,11 @@ const teamSchema = new Schema<ITeam>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      index: true,
     },
     members: [
       {

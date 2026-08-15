@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -24,7 +25,12 @@ import {
   TrendingUp,
   Award,
   X,
-  Edit3
+  Edit3,
+  Sparkles,
+  Clock,
+  CreditCard,
+  ArrowRight,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useAuthStore from '../store/authStore';
@@ -38,6 +44,7 @@ const defaultMonthlyData: any[] = [];
 const COLORS = ['#2563EB', '#6366F1', '#F59E0B', '#8B5CF6', '#10B981', '#EF4444'];
 
 export const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { success, error } = useToast();
   
@@ -169,12 +176,12 @@ export const Dashboard = () => {
 
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto min-w-0 w-full overflow-hidden">
-      {/* Welcome Header */}
-      <div className="bg-white border border-brand-border rounded-2xl p-4 sm:p-6 smooth-shadow flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+      {/* Welcome & Role Banner */}
+      <div className="bg-white dark:bg-[#121212] border border-slate-200/90 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 smooth-shadow flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 transition-colors">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-brand-textPrimary">Executive Dashboard & Analytics</h1>
-          <p className="text-xs text-brand-textSecondary mt-1">
-            Role: <span className="font-semibold text-brand-primary uppercase tracking-wider">{user?.role}</span> | Real-time revenue insights & sales performance.
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Executive Dashboard &amp; Analytics</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+            Role: <span className="font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">{user?.role}</span> | Real-time revenue insights &amp; sales performance.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -185,13 +192,116 @@ export const Dashboard = () => {
               <span className="sm:hidden">Manage KPI</span>
             </Button>
           )}
-          <div className="flex items-center gap-2 text-xs text-brand-textSecondary bg-slate-50 border border-brand-border px-2.5 sm:px-3 py-1.5 rounded-lg w-fit">
-            <Server className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-brand-primary" />
-            <span className="hidden sm:inline">MongoDB Cloud Connection: <strong className="text-green-600 font-semibold">Active</strong></span>
-            <span className="sm:hidden"><strong className="text-green-600 font-semibold">MongoDB Active</strong></span>
+          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 px-2.5 sm:px-3 py-1.5 rounded-xl w-fit">
+            <Server className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 dark:text-blue-400" />
+            <span className="hidden sm:inline">MongoDB Cloud Connection: <strong className="text-green-600 dark:text-green-400 font-semibold">Active</strong></span>
+            <span className="sm:hidden"><strong className="text-green-600 dark:text-green-400 font-semibold">MongoDB Active</strong></span>
           </div>
         </div>
       </div>
+
+      {/* Subscription Status Banner */}
+      {(() => {
+        const sub = user?.subscription;
+        const status = sub?.status || 'trial';
+        const planName = sub?.plan ? sub.plan.toUpperCase() : 'FREE TRIAL';
+        const daysRemaining = sub?.daysRemaining ?? 14;
+        const aiAccess = sub?.aiAccess !== false;
+
+        if (status === 'expired' || !aiAccess) {
+          return (
+            <div className="bg-red-50/80 dark:bg-zinc-900/90 border border-red-200 dark:border-red-900/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs transition-colors">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">Free Trial Expired</h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 uppercase">AI Features Locked</span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
+                    Your 14-day free trial has ended. Upgrade your plan now to unlock AI Chat, Email Generator, and Meeting Summaries.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-all flex-shrink-0 cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Upgrade Plan Now <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          );
+        }
+
+        if (status === 'active') {
+          return (
+            <div className="bg-blue-50/80 dark:bg-[#121212] border border-blue-200/80 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs transition-colors">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">{planName} Plan Active</h3>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-zinc-800 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-zinc-700 uppercase flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" /> AI Enabled
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
+                    {daysRemaining > 0 ? `${daysRemaining} days remaining in your subscription period.` : 'Active Subscription'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/pricing')}
+                className="w-full sm:w-auto px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all flex-shrink-0 cursor-pointer"
+              >
+                <CreditCard className="w-3.5 h-3.5" /> View Plans
+              </button>
+            </div>
+          );
+        }
+
+        // Trial Active Default
+        const trialText =
+          daysRemaining <= 1
+            ? 'Trial ends tomorrow'
+            : daysRemaining === 2
+            ? '2 days remaining'
+            : `${daysRemaining} days remaining`;
+
+        return (
+          <div className="bg-slate-100 dark:bg-[#18181B] border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs transition-colors">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">14-Day Free Trial</h3>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 dark:bg-zinc-800 text-blue-800 dark:text-blue-400 border border-blue-200 dark:border-zinc-700 uppercase flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> {trialText}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-zinc-800 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-zinc-700 uppercase flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> AI Features Enabled
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-zinc-400 mt-1">
+                  Enjoy full access to all generative AI sales tools during your trial period.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate('/pricing')}
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all flex-shrink-0 cursor-pointer"
+            >
+              <CreditCard className="w-3.5 h-3.5" /> View Plans
+            </button>
+          </div>
+        );
+      })()}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
@@ -305,17 +415,17 @@ export const Dashboard = () => {
               </div>
             ) : (
               analytics.leaderboard.slice(0, 5).map((rep: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-100 rounded-xl gap-2 min-w-0">
+                <div key={idx} className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800/70 border border-slate-100 dark:border-slate-800 rounded-xl gap-2 min-w-0">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-bold text-xs flex items-center justify-center flex-shrink-0">
                       #{idx + 1}
                     </span>
                     <div className="flex flex-col min-w-0">
-                      <span className="font-bold text-xs text-slate-800 truncate">{rep.name}</span>
-                      <span className="text-[10px] text-slate-500 truncate">{rep.dealsCount} Deals managed</span>
+                      <span className="font-bold text-xs text-slate-800 dark:text-slate-200 truncate">{rep.name}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate">{rep.dealsCount} Deals managed</span>
                     </div>
                   </div>
-                  <span className="font-bold text-sm text-emerald-600 flex-shrink-0">
+                  <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400 flex-shrink-0">
                     ${rep.wonValue.toLocaleString()}
                   </span>
                 </div>

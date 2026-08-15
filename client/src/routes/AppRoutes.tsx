@@ -1,13 +1,14 @@
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
-import useAuthStore from '../store/authStore';
-import api from '../services/api';
+import useAuthStore, { PlatformRole } from '../store/authStore';
+import useThemeStore, { applyThemeToDOM } from '../store/themeStore';
+import api, { setIsRestoringSession } from '../services/api';
 import { Loader2 } from 'lucide-react';
 
-// ─── Lazy-loaded pages — keeps initial bundle small ───────────────────────────
+// ─── Lazy-loaded pages ────────────────────────────────────────────────────────
 const DashboardLayout = lazy(() => import('../layouts/DashboardLayout'));
-const Login           = lazy(() => import('../pages/AuthPage').then(m => ({ default: m.Login })));
-const Register        = lazy(() => import('../pages/AuthPage').then(m => ({ default: m.Register })));
+const Login           = lazy(() => import('../pages/Login').then(m => ({ default: m.Login })));
+const Register        = lazy(() => import('../pages/Register').then(m => ({ default: m.Register })));
 const Dashboard       = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const Unauthorized    = lazy(() => import('../pages/Unauthorized').then(m => ({ default: m.Unauthorized })));
 const Leads           = lazy(() => import('../pages/Leads').then(m => ({ default: m.Leads })));
@@ -25,6 +26,15 @@ const UserManagement  = lazy(() => import('../pages/UserManagement').then(m => (
 const ForgotPassword  = lazy(() => import('../pages/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
 const VerifyOTP        = lazy(() => import('../pages/VerifyOTP').then(m => ({ default: m.VerifyOTP })));
 const ResetPassword   = lazy(() => import('../pages/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const PricingPage     = lazy(() => import('../pages/PricingPage').then(m => ({ default: m.PricingPage })));
+const PaymentSuccessPage = lazy(() => import('../pages/PaymentSuccessPage').then(m => ({ default: m.PaymentSuccessPage })));
+const SelectCompany   = lazy(() => import('../pages/SelectCompany').then(m => ({ default: m.SelectCompany })));
+const CompanySettings = lazy(() => import('../pages/CompanySettings').then(m => ({ default: m.CompanySettings })));
+
+// ─── New Join Code System Pages ───────────────────────────────────────────────
+const JoinCompanyPage   = lazy(() => import('../pages/JoinCompanyPage').then(m => ({ default: m.JoinCompanyPage })));
+const PendingApprovalPage = lazy(() => import('../pages/PendingApprovalPage').then(m => ({ default: m.PendingApprovalPage })));
+const RejectedPage      = lazy(() => import('../pages/RejectedPage').then(m => ({ default: m.RejectedPage })));
 
 // ─── Shared Full-Screen Loading Spinner ───────────────────────────────────────
 const PageLoadingSpinner = () => (
@@ -36,9 +46,12 @@ const PageLoadingSpinner = () => (
 
 // ─── Route Guards ─────────────────────────────────────────────────────────────
 
-/** Requires authentication — shows loader while session is being restored */
+/**
+ * Requires authentication and ACTIVE status with a company.
+ * Redirects based on accountStatus state machine.
+ */
 const ProtectedRoute = () => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isLoading, user } = useAuthStore();
   const location = useLocation();
 
   if (isLoading) {
@@ -50,75 +63,159 @@ const ProtectedRoute = () => {
     );
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // State machine redirects for non-active users
+  const status = user?.accountStatus;
+  if (status === 'REJECTED') return <Navigate to="/rejected" replace />;
+  if (status === 'PENDING_COMPANY') return <Navigate to="/join-company" replace />;
+  if (status === 'PENDING_APPROVAL' || status === 'PENDING') return <Navigate to="/pending-approval" replace />;
+
+  return <Outlet />;
 };
 
-/** For Login & Register pages — redirects authenticated users to correct dashboard */
+/** For Login & Register pages — redirects authenticated users to correct destination */
 const GuestRoute = () => {
-  const { isAuthenticated, isLoading, user } = useAuthStore();
-  if (isLoading) return null;
-  if (!isAuthenticated) return <Outlet />;
-  // Role-based redirect after login
-  if (user?.role === 'SuperAdmin') return <Navigate to="/super-admin" replace />;
+  const { isLoading, user } = useAuthStore();
+  if (isLoading) return <PageLoadingSpinner />;
+  if (!user) return <Outlet />;
+
+  // Route authenticated users to correct page based on state
+  const status = user?.accountStatus;
+  if (user?.role === 'SUPER_ADMIN' || user?.role === 'SuperAdmin') return <Navigate to="/super-admin" replace />;
+  if (status === 'REJECTED') return <Navigate to="/rejected" replace />;
+  if (status === 'PENDING_COMPANY') return <Navigate to="/join-company" replace />;
+  if (status === 'PENDING_APPROVAL' || status === 'PENDING') return <Navigate to="/pending-approval" replace />;
+  if (user?.companyStatus === 'PENDING') return <Navigate to="/pending-approval" replace />;
   return <Navigate to="/dashboard" replace />;
 };
 
-/** RBAC guard — redirects to /unauthorized if role is insufficient */
+/** RBAC guard — normalizes roles and checks access */
 interface RoleGuardProps {
-  allowedRoles: ('SuperAdmin' | 'Admin' | 'SalesManager' | 'SalesRep')[];
+  allowedRoles: (PlatformRole | string)[];
 }
+
+const normalizeRole = (r: string): string => {
+  if (r === 'SuperAdmin') return 'SUPER_ADMIN';
+  if (r === 'Admin') return 'COMPANY_OWNER';
+  if (r === 'SalesManager') return 'SALES_MANAGER';
+  if (r === 'SalesRep') return 'SALES_REPRESENTATIVE';
+  return r;
+};
 
 const RoleGuard = ({ allowedRoles }: RoleGuardProps) => {
   const { user } = useAuthStore();
   if (!user) return <Navigate to="/login" replace />;
-  return allowedRoles.includes(user.role) ? <Outlet /> : <Navigate to="/unauthorized" replace />;
+
+  const userRoleNorm = normalizeRole(user.role);
+  const allowedNorm = allowedRoles.map(normalizeRole);
+
+  return allowedNorm.includes(userRoleNorm) ? <Outlet /> : <Navigate to="/unauthorized" replace />;
+};
+
+/**
+ * Route guard for Join System status pages (/join-company, /pending-approval, /rejected).
+ * Requires authenticated user session; unauthenticated users are sent to /login.
+ */
+const JoinSystemRoute = () => {
+  const { isLoading, user } = useAuthStore();
+  if (isLoading) return <PageLoadingSpinner />;
+  if (!user) return <Navigate to="/login" replace />;
+  return <Outlet />;
+};
+
+const PUBLIC_LIGHT_ROUTES = [
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-otp',
+];
+
+/**
+ * Ensures public Landing and Auth (Login/Register/Recovery) pages are NEVER affected by Dark Mode,
+ * while restoring the user's selected theme on all other application routes.
+ */
+const ThemeRouteSynchronizer = () => {
+  const location = useLocation();
+  const { theme } = useThemeStore();
+
+  useEffect(() => {
+    const isPublicLightPage = PUBLIC_LIGHT_ROUTES.includes(location.pathname);
+    if (isPublicLightPage) {
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.remove('dark');
+        if (document.body) document.body.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    } else {
+      applyThemeToDOM(theme);
+    }
+  }, [location.pathname, theme]);
+
+  return null;
 };
 
 // ─── App Routes ───────────────────────────────────────────────────────────────
 
 export const AppRoutes = () => {
-  const { login, logout, setLoading } = useAuthStore();
+  const { login, logout, setLoading, isLoading } = useAuthStore();
   const checkedRef = useRef(false);
 
   useEffect(() => {
     if (checkedRef.current) return;
     checkedRef.current = true;
 
-    const hasSessionFlag = localStorage.getItem('crm_has_session');
-
-    if (!hasSessionFlag) {
-      setLoading(false);
-      return;
-    }
-
     const restoreSession = async () => {
+      setIsRestoringSession(true);
       try {
-        // Attempt to silently refresh using the HttpOnly refresh-token cookie.
-        // This is the single source of truth for session restoration.
-        // No 'session-active' dummy token — only valid JWTs from the server.
         const refreshRes = await api.post('/auth/refresh', {}, { timeout: 8000 });
-        const { accessToken, user } = refreshRes.data;
-        if (accessToken && user) {
+        const { accessToken, user, success } = refreshRes.data;
+
+        if (success && accessToken && user) {
           login(accessToken, user);
+          if (import.meta.env.DEV) {
+            console.log('[AuthRestore] Session restored for:', user?.email);
+          }
         } else {
-          // Server responded but data was malformed — clear session
           logout();
         }
       } catch {
-        // Refresh token expired, missing, or server error — force re-login
+        // Expected when no session exists (401) — silently redirect to login
         logout();
+      } finally {
+        setIsRestoringSession(false);
+        setLoading(false);
       }
     };
 
     restoreSession();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [login, logout, setLoading]);
+
+  if (isLoading) {
+    return <PageLoadingSpinner />;
+  }
 
   return (
-    <Suspense fallback={<PageLoadingSpinner />}>
-      <Routes>
-        {/* Public Landing */}
+    <>
+      <ThemeRouteSynchronizer />
+      <Suspense fallback={<PageLoadingSpinner />}>
+        <Routes>
+        {/* Public Landing & Pricing */}
         <Route path="/" element={<Landing />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/payment-success" element={<PaymentSuccessPage />} />
+        <Route path="/select-company" element={<SelectCompany />} />
+
+        {/* Join Code System — protected for authenticated users */}
+        <Route element={<JoinSystemRoute />}>
+          <Route path="/join-company" element={<JoinCompanyPage />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
+          <Route path="/rejected" element={<RejectedPage />} />
+        </Route>
 
         {/* Guest Only */}
         <Route element={<GuestRoute />}>
@@ -129,7 +226,7 @@ export const AppRoutes = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
-        {/* Protected */}
+        {/* Protected Routes — ACTIVE users with companyId only */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
 
@@ -143,19 +240,24 @@ export const AppRoutes = () => {
             <Route path="/tasks"        element={<TasksPage />} />
             <Route path="/calendar"     element={<CalendarPage />} />
 
+            {/* Company Owner & SuperAdmin */}
+            <Route element={<RoleGuard allowedRoles={['COMPANY_OWNER', 'SUPER_ADMIN', 'Admin', 'SuperAdmin']} />}>
+              <Route path="/company-settings" element={<CompanySettings />} />
+            </Route>
+
             {/* SuperAdmin Only */}
-            <Route element={<RoleGuard allowedRoles={['SuperAdmin']} />}>
+            <Route element={<RoleGuard allowedRoles={['SUPER_ADMIN', 'SuperAdmin']} />}>
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
             </Route>
 
             {/* Admin & SuperAdmin */}
-            <Route element={<RoleGuard allowedRoles={['SuperAdmin', 'Admin']} />}>
+            <Route element={<RoleGuard allowedRoles={['SUPER_ADMIN', 'COMPANY_OWNER', 'SuperAdmin', 'Admin']} />}>
               <Route path="/user-management" element={<UserManagement />} />
               <Route path="/teams"      element={<Teams />} />
               <Route path="/activities" element={<ActivityLogs />} />
               <Route path="/admin-settings" element={
                 <div className="p-6 bg-white rounded-xl border border-brand-border smooth-shadow">
-                  <h1 className="text-xl font-bold text-brand-textPrimary">SuperAdmin &amp; Admin Control Hub</h1>
+                  <h1 className="text-xl font-bold text-brand-textPrimary">SuperAdmin & Admin Control Hub</h1>
                   <p className="text-sm text-brand-textSecondary mt-2">
                     This interface handles administrative updates, RBAC mappings, and log settings.
                   </p>
@@ -166,8 +268,8 @@ export const AppRoutes = () => {
               } />
             </Route>
 
-            {/* Manager, Admin, SuperAdmin */}
-            <Route element={<RoleGuard allowedRoles={['SuperAdmin', 'Admin', 'SalesManager']} />}>
+            {/* Manager, Owner, SuperAdmin */}
+            <Route element={<RoleGuard allowedRoles={['SUPER_ADMIN', 'COMPANY_OWNER', 'SALES_MANAGER', 'SuperAdmin', 'Admin', 'SalesManager']} />}>
               <Route path="/reports" element={<ReportsPage />} />
             </Route>
 
@@ -178,6 +280,7 @@ export const AppRoutes = () => {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
+  </>
   );
 };
 

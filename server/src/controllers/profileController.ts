@@ -1,8 +1,3 @@
-/**
- * Profile Controller
- * Handles all user profile, avatar, email/password management and account deletion.
- * Uses Cloudinary for avatar storage, Sharp for image optimization (via uploadMiddleware).
- */
 import { Response } from 'express';
 import sharp from 'sharp';
 import { z } from 'zod';
@@ -10,6 +5,8 @@ import { User } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { Notification } from '../models/Notification';
 import { ActivityLog } from '../models/ActivityLog';
+import Company from '../models/Company';
+import Package from '../models/Package';
 import { AuthenticatedRequest } from '../middleware/authMiddleware';
 import emailService from '../services/emailService';
 import { sendSuccess, sendError } from '../utils/apiResponse';
@@ -65,6 +62,71 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response): Prom
       activeSessionsCount = 1;
     }
 
+    // Fetch company subscription & AI credit data
+    let subscriptionInfo: any = null;
+    try {
+      const companyId = req.companyId || req.user.companyId || user.companyId;
+      if (companyId) {
+        const company = await Company.findById(companyId);
+        if (company && company.subscription) {
+          const sub = company.subscription;
+
+          // Load package for AI credit limit
+          let pkg: any = null;
+          if (sub.packageId) {
+            pkg = await Package.findById(sub.packageId);
+          } else if (sub.plan) {
+            pkg = await Package.findOne({ slug: sub.plan });
+          }
+
+          const aiQueryLimit = pkg?.limits?.aiQueryLimit || sub.usageLimits?.aiQueryLimit || 100;
+          const currentAiUsage = sub.currentAiUsage || 0;
+          const aiCreditsRemaining = Math.max(0, aiQueryLimit - currentAiUsage);
+
+          // Determine plan display name
+          const planDisplayMap: Record<string, string> = {
+            trial: 'AI CRM Lite',
+            basic: 'AI CRM Plus',
+            medium: 'AI CRM Pro',
+            premium: 'AI CRM Ultra',
+          };
+          const planDisplayName = pkg?.name || planDisplayMap[sub.plan] || sub.plan || 'AI CRM Lite';
+
+          // Compute days remaining
+          const now = new Date();
+          let daysRemaining = 0;
+          let periodEnd = sub.endDate || sub.trialEndDate;
+          if (sub.status === 'trial' && sub.trialEndDate) {
+            periodEnd = sub.trialEndDate;
+          }
+          if (periodEnd) {
+            const diffMs = new Date(periodEnd).getTime() - now.getTime();
+            daysRemaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+          }
+
+          subscriptionInfo = {
+            plan: sub.plan,
+            planDisplayName,
+            status: sub.status,
+            startDate: sub.startDate || sub.trialStartDate || null,
+            endDate: sub.endDate || sub.trialEndDate || null,
+            trialStartDate: sub.trialStartDate || null,
+            trialEndDate: sub.trialEndDate || null,
+            daysRemaining,
+            aiQueryLimit,
+            currentAiUsage,
+            aiCreditsRemaining,
+            aiCreditUsagePercent: aiQueryLimit > 0 ? Math.min(100, Math.round((currentAiUsage / aiQueryLimit) * 100)) : 0,
+            aiFeaturesEnabled: sub.aiFeaturesEnabled,
+            billingCycle: sub.billingCycle,
+            amountPaid: sub.amountPaid,
+          };
+        }
+      }
+    } catch {
+      // Subscription data is non-critical; continue without it
+    }
+
     sendSuccess(res, {
       user: {
         id: user.id || user._id.toString(),
@@ -88,6 +150,7 @@ export const getProfile = async (req: AuthenticatedRequest, res: Response): Prom
         activeSessions: activeSessionsCount,
         authProvider: user.googleId ? 'Google OAuth' : 'Email/Password',
       },
+      subscription: subscriptionInfo,
     });
   } catch (error: any) {
     console.error('[profileController] getProfile:', error.message);

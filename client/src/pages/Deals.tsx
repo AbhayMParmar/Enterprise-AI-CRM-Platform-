@@ -180,11 +180,13 @@ export const Deals = () => {
 
         <div className="flex items-center gap-3">
           {/* View Toggle */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-brand-border">
+          <div className="flex items-center bg-slate-100 dark:bg-[#18181B] p-1 rounded-lg border border-brand-border dark:border-zinc-800">
             <button
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                viewMode === 'kanban' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'kanban'
+                  ? 'bg-white dark:bg-zinc-800 text-brand-primary dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -192,8 +194,10 @@ export const Deals = () => {
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                viewMode === 'list' ? 'bg-white text-brand-primary shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-zinc-800 text-brand-primary dark:text-blue-400 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <List className="w-3.5 h-3.5" />
@@ -210,11 +214,11 @@ export const Deals = () => {
 
       {/* Metrics Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50/30 border-blue-100">
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50/30 dark:from-blue-950/40 dark:to-indigo-950/20 border-blue-100 dark:border-blue-900/50">
           <CardBody className="p-3 sm:p-4 flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <span className="text-[11px] sm:text-xs font-semibold text-blue-700 truncate">Active Pipeline Value</span>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 truncate">${activePipelineValue.toLocaleString()}</h3>
+              <span className="text-[11px] sm:text-xs font-semibold text-blue-700 dark:text-blue-400 truncate">Active Pipeline Value</span>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5 truncate">${activePipelineValue.toLocaleString()}</h3>
             </div>
             <div className="p-2 sm:p-2.5 bg-blue-600 text-white rounded-xl flex-shrink-0 ml-2">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -222,11 +226,11 @@ export const Deals = () => {
           </CardBody>
         </Card>
 
-        <Card className="bg-gradient-to-r from-emerald-50 to-teal-50/30 border-emerald-100">
+        <Card className="bg-gradient-to-r from-emerald-50 to-teal-50/30 dark:from-emerald-950/40 dark:to-teal-950/20 border-emerald-100 dark:border-emerald-900/50">
           <CardBody className="p-3 sm:p-4 flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <span className="text-[11px] sm:text-xs font-semibold text-emerald-700 truncate">Closed Won Revenue</span>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 truncate">${totalClosedWon.toLocaleString()}</h3>
+              <span className="text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-400 truncate">Closed Won Revenue</span>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5 truncate">${totalClosedWon.toLocaleString()}</h3>
             </div>
             <div className="p-2 sm:p-2.5 bg-emerald-600 text-white rounded-xl flex-shrink-0 ml-2">
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -234,13 +238,13 @@ export const Deals = () => {
           </CardBody>
         </Card>
 
-        <Card className="bg-slate-50 border-brand-border">
+        <Card className="bg-slate-50 dark:bg-[#121212] border-brand-border dark:border-zinc-800">
           <CardBody className="p-3 sm:p-4 flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <span className="text-[11px] sm:text-xs font-semibold text-slate-600 truncate">Total Opportunities</span>
-              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5 truncate">{deals.length} Deals</h3>
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-600 dark:text-zinc-400 truncate">Total Opportunities</span>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5 truncate">{deals.length} Deals</h3>
             </div>
-            <div className="p-2 sm:p-2.5 bg-slate-200 text-slate-700 rounded-xl flex-shrink-0 ml-2">
+            <div className="p-2 sm:p-2.5 bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl flex-shrink-0 ml-2">
               <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
             </div>
           </CardBody>
@@ -248,28 +252,28 @@ export const Deals = () => {
       </div>
 
       {/* Filters Bar */}
-      <Card>
+      <Card className="bg-white dark:bg-[#121212] border-brand-border dark:border-zinc-800">
         <CardBody className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:max-w-xs">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-textSecondary" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-brand-textSecondary dark:text-zinc-500" />
             <input
               type="text"
               placeholder="Search deals by title..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-brand-bg border border-brand-border rounded-lg text-sm outline-none focus:border-brand-primary/60 focus:ring-1 focus:ring-brand-primary/30 w-full transition-all"
+              className="pl-9 pr-4 py-2 bg-brand-bg dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-lg text-sm text-brand-textPrimary dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-brand-primary/60 focus:ring-1 focus:ring-brand-primary/30 w-full transition-all"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full md:w-auto">
             <div className="flex items-center gap-2 text-xs w-full sm:w-auto">
-              <span className="text-brand-textSecondary font-semibold flex items-center gap-1.5 flex-shrink-0">
+              <span className="text-brand-textSecondary dark:text-zinc-400 font-semibold flex items-center gap-1.5 flex-shrink-0">
                 <Filter className="w-3.5 h-3.5" /> Stage:
               </span>
               <select
                 value={stageFilter}
                 onChange={(e) => setStageFilter(e.target.value)}
-                className="flex-1 sm:flex-none px-3 py-1.5 sm:py-2 bg-brand-bg border border-brand-border rounded-lg outline-none cursor-pointer text-brand-textPrimary text-xs focus:ring-1 focus:ring-brand-primary appearance-none"
+                className="flex-1 sm:flex-none px-3 py-1.5 sm:py-2 bg-brand-bg dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-lg outline-none cursor-pointer text-brand-textPrimary dark:text-white text-xs focus:ring-1 focus:ring-brand-primary appearance-none"
               >
                 <option value="All">All Stages</option>
                 <option value="Lead">Lead</option>
@@ -282,11 +286,11 @@ export const Deals = () => {
             </div>
 
             <div className="flex items-center gap-2 text-xs w-full sm:w-auto">
-              <span className="text-brand-textSecondary font-semibold flex-shrink-0">Rep:</span>
+              <span className="text-brand-textSecondary dark:text-zinc-400 font-semibold flex-shrink-0">Rep:</span>
               <select
                 value={assignedFilter}
                 onChange={(e) => setAssignedFilter(e.target.value)}
-                className="flex-1 sm:flex-none px-3 py-1.5 sm:py-2 bg-brand-bg border border-brand-border rounded-lg outline-none cursor-pointer text-brand-textPrimary text-xs focus:ring-1 focus:ring-brand-primary appearance-none"
+                className="flex-1 sm:flex-none px-3 py-1.5 sm:py-2 bg-brand-bg dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-lg outline-none cursor-pointer text-brand-textPrimary dark:text-white text-xs focus:ring-1 focus:ring-brand-primary appearance-none"
               >
                 <option value="All">All Reps</option>
                 {teamMembers.map((m) => (

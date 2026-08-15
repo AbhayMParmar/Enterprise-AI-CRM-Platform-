@@ -17,6 +17,7 @@ export interface IDeal extends Document {
   expectedCloseDate?: Date;
   assignedTo?: Types.ObjectId;
   teamId?: Types.ObjectId;
+  companyId?: Types.ObjectId;
   notes: IDealNote[];
   createdAt: Date;
   updatedAt: Date;
@@ -77,6 +78,11 @@ const dealSchema = new Schema<IDeal>(
     teamId: {
       type: Schema.Types.ObjectId,
       ref: 'Team',
+    },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      index: true,
     },
     notes: [dealNoteSchema],
   },

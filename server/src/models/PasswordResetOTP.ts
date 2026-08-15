@@ -2,15 +2,17 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 /**
  * Password Reset OTP Schema
- * Stores OTP hashes for password reset functionality with automatic expiration
+ * Stores OTP hashes for password reset functionality ONLY.
+ * Automatically expires via MongoDB TTL index.
+ * Purpose is always "forgot-password" — this model is never reused for other flows.
  */
 export interface IPasswordResetOTP extends Document {
   userId: mongoose.Types.ObjectId;
   email: string;
   otpHash: string;
   attempts: number;
-  verified: boolean;
   expiresAt: Date;
+  lastSentAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,16 +38,16 @@ const PasswordResetOTPSchema: Schema<IPasswordResetOTP> = new Schema(
     attempts: {
       type: Number,
       default: 0,
-      max: 5,
-    },
-    verified: {
-      type: Boolean,
-      default: false,
     },
     expiresAt: {
       type: Date,
       required: true,
-      index: { expires: '5m' }, // TTL Index: Auto-delete after 5 minutes
+      index: { expires: '2m' }, // TTL Index: MongoDB auto-deletes documents 2 minutes after expiresAt
+    },
+    lastSentAt: {
+      type: Date,
+      required: true,
+      default: Date.now,
     },
   },
   {
@@ -53,15 +55,17 @@ const PasswordResetOTPSchema: Schema<IPasswordResetOTP> = new Schema(
   }
 );
 
-// Compound index for efficient lookups
-PasswordResetOTPSchema.index({ email: 1, verified: 1 });
+// Compound index for efficient lookups by email
+PasswordResetOTPSchema.index({ email: 1 });
 
-// Partial unique index — only one unverified OTP allowed per email at a time
+// Unique index — only one active OTP allowed per email at a time
 PasswordResetOTPSchema.index(
   { email: 1 },
-  { unique: true, partialFilterExpression: { verified: false } }
+  { unique: true, partialFilterExpression: { expiresAt: { $exists: true } } }
 );
 
-const PasswordResetOTP: Model<IPasswordResetOTP> = mongoose.models.PasswordResetOTP || mongoose.model<IPasswordResetOTP>('PasswordResetOTP', PasswordResetOTPSchema);
+const PasswordResetOTP: Model<IPasswordResetOTP> =
+  mongoose.models.PasswordResetOTP ||
+  mongoose.model<IPasswordResetOTP>('PasswordResetOTP', PasswordResetOTPSchema);
 
 export default PasswordResetOTP;

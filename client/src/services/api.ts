@@ -16,9 +16,12 @@ export const api = axios.create({
 // Request Interceptor: Attach JWT token to requests if available
 api.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().accessToken;
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const { accessToken, user } = useAuthStore.getState();
+    if (accessToken && config.headers) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    if (user?.companyId && config.headers) {
+      config.headers['X-Company-Id'] = user.companyId;
     }
     return config;
   },
@@ -30,6 +33,15 @@ api.interceptors.request.use(
 // Response Interceptor: Catch 401s, silently refresh access token, and retry request
 let isRefreshing = false;
 let failedQueue: any[] = [];
+
+/**
+ * Set to true while AppRoutes restoreSession() is in-flight.
+ * Prevents the 401 response interceptor from firing a concurrent
+ * /auth/refresh while restoreSession is already doing so, which
+ * would cause a token-rotation race and a second 401.
+ */
+export let isRestoringSession = false;
+export const setIsRestoringSession = (v: boolean) => { isRestoringSession = v; };
 
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((prom) => {
@@ -47,23 +59,29 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // These endpoints should never trigger a refresh-token retry
+    // These endpoints should never trigger a refresh-token retry loop
     const isAuthEndpoint =
-      originalRequest?.url?.includes('/auth/me') ||
       originalRequest?.url?.includes('/auth/login') ||
       originalRequest?.url?.includes('/auth/register') ||
       originalRequest?.url?.includes('/auth/refresh') ||
-      originalRequest?.url?.includes('/auth/google-login');
+      originalRequest?.url?.includes('/auth/google-login') ||
+      originalRequest?.url?.includes('/auth/forgot-password') ||
+      originalRequest?.url?.includes('/auth/verify-reset-otp') ||
+      originalRequest?.url?.includes('/auth/reset-password') ||
+      originalRequest?.url?.includes('/auth/logout');
 
-    // Check if error is 401 (Unauthorized), not an auth probing route, and has not been retried already
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    // Check if error is 401 (Unauthorized), not an auth route, has not been retried already,
+    // and session restoration is not already in-flight (to avoid token rotation race condition)
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint && !isRestoringSession) {
       // If we are already refreshing, queue this request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
             return api(originalRequest);
           })
           .catch((err) => {
@@ -76,22 +94,33 @@ api.interceptors.response.use(
 
       try {
         // Request token refresh using the HttpOnly cookie
+        const refreshUrl = `${API_BASE_URL.replace(/\/$/, '')}/auth/refresh`;
         const response = await axios.post(
-          `${API_BASE_URL}/auth/refresh`,
+          refreshUrl,
           {},
           { withCredentials: true }
         );
 
         const { accessToken, user } = response.data;
 
+        if (!accessToken) {
+          throw new Error('No access token returned from refresh');
+        }
+
         // Update store with new credentials
-        useAuthStore.getState().login(accessToken, user);
+        if (user) {
+          useAuthStore.getState().login(accessToken, user);
+        } else {
+          useAuthStore.getState().setAccessToken(accessToken);
+        }
 
         processQueue(null, accessToken);
         isRefreshing = false;
 
         // Retry the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
         return api(originalRequest);
       } catch (refreshError: any) {
         // Refresh token failed (expired, invalid, or revoked)

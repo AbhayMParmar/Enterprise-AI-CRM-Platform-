@@ -13,6 +13,7 @@ export interface ITask extends Document {
   customer?: Types.ObjectId;
   deal?: Types.ObjectId;
   createdBy: Types.ObjectId;
+  companyId?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -56,6 +57,11 @@ const taskSchema = new Schema<ITask>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      index: true,
     },
   },
   {

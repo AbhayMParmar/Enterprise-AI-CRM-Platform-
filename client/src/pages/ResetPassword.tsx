@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Lock, Eye, EyeOff, ArrowLeft, Sparkles, AlertCircle, CheckCircle2, Loader2, Check } from 'lucide-react';
+import { Lock, Eye, EyeOff, ArrowLeft, Sparkles, AlertCircle, CheckCircle2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
@@ -20,13 +20,21 @@ export const ResetPassword = () => {
   const location = useLocation();
   const { success, error: toastError } = useToast();
 
+  // These are passed via navigate state from VerifyOTP page
   const email = location.state?.email || '';
-  const otp = location.state?.otp || '';
+  const resetToken = location.state?.resetToken || '';
 
-  // Password strength validation
+  // Guard: if no reset token, redirect to forgot-password
+  useEffect(() => {
+    if (!resetToken || !email) {
+      navigate('/forgot-password', { replace: true });
+    }
+  }, [resetToken, email, navigate]);
+
+  // ─── Password validation matching the server schema (6–8 chars) ───────────────
   const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
     let score = 0;
-    if (password.length >= 8) score++;
+    if (password.length >= 6) score++;
     if (/[A-Z]/.test(password)) score++;
     if (/[a-z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
@@ -47,8 +55,11 @@ export const ResetPassword = () => {
   const validatePassword = (password: string): { valid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    if (password.length < 8) {
-      errors.push('Password must be at least 8 characters');
+    if (password.length < 6) {
+      errors.push('Password must be at least 6 characters');
+    }
+    if (password.length > 8) {
+      errors.push('Password cannot exceed 8 characters');
     }
     if (!/[A-Z]/.test(password)) {
       errors.push('Must contain at least one uppercase letter');
@@ -86,22 +97,36 @@ export const ResetPassword = () => {
       return;
     }
 
+    if (!resetToken) {
+      setError('Reset authorization missing. Please restart the forgot password process.');
+      navigate('/forgot-password', { replace: true });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await api.post('/auth/reset-password', { email, otp, newPassword });
-      
+      // Send email + resetToken (NOT the OTP) to the backend.
+      // The backend verifies the signed JWT reset token to authorize the password change.
+      const response = await api.post('/auth/reset-password', {
+        email,
+        resetToken,
+        newPassword,
+      });
+
       if (response.data.success) {
         setIsSuccess(true);
         success('Password updated successfully!');
-        
+
         // Redirect to login after 2 seconds
         setTimeout(() => {
           navigate('/login');
         }, 2000);
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to reset password. Please try again.';
+      const errorMessage =
+        err.response?.data?.message ||
+        'Failed to reset password. Please try again or restart the process.';
       setError(errorMessage);
       toastError(errorMessage);
     } finally {
@@ -124,12 +149,12 @@ export const ResetPassword = () => {
               </div>
               <span className="text-sm font-bold text-slate-800 tracking-tight">AI CRM Suite</span>
             </div>
-            
+
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
               Create New Password
             </h1>
             <p className="text-sm text-slate-500 font-medium">
-              Enter your new password below
+              Choose a strong password for your account
             </p>
           </CardHeader>
 
@@ -169,6 +194,7 @@ export const ResetPassword = () => {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="••••••••"
+                      maxLength={8}
                       className={`w-full pl-10 pr-10 py-3 bg-[#f8fafc] border rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all font-medium shadow-xs ${
                         error
                           ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400/20'
@@ -200,11 +226,11 @@ export const ResetPassword = () => {
                         </span>
                       </div>
 
-                      {/* Password Requirements */}
+                      {/* Password Requirements — match backend validation exactly */}
                       <div className="space-y-1">
-                        <div className={`flex items-center gap-1.5 text-[10px] ${newPassword.length >= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        <div className={`flex items-center gap-1.5 text-[10px] ${newPassword.length >= 6 && newPassword.length <= 8 ? 'text-emerald-600' : 'text-slate-400'}`}>
                           <Check className="w-3 h-3" />
-                          <span>At least 8 characters</span>
+                          <span>6–8 characters</span>
                         </div>
                         <div className={`flex items-center gap-1.5 text-[10px] ${/[A-Z]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`}>
                           <Check className="w-3 h-3" />
@@ -220,7 +246,7 @@ export const ResetPassword = () => {
                         </div>
                         <div className={`flex items-center gap-1.5 text-[10px] ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`}>
                           <Check className="w-3 h-3" />
-                          <span>One special character</span>
+                          <span>One special character (e.g. @, #, !)</span>
                         </div>
                       </div>
                     </div>
@@ -241,6 +267,7 @@ export const ResetPassword = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
+                      maxLength={8}
                       className={`w-full pl-10 pr-10 py-3 bg-[#f8fafc] border rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none transition-all font-medium shadow-xs ${
                         error && confirmPassword && confirmPassword !== newPassword
                           ? 'border-rose-400 bg-rose-50/20 focus:ring-2 focus:ring-rose-400/20'
@@ -285,14 +312,19 @@ export const ResetPassword = () => {
                   variant="primary"
                   size="lg"
                   isLoading={isLoading}
-                  disabled={!newPassword || !confirmPassword || newPassword !== confirmPassword}
+                  disabled={
+                    !newPassword ||
+                    !confirmPassword ||
+                    newPassword !== confirmPassword ||
+                    validatePassword(newPassword).errors.length > 0
+                  }
                   className="w-full"
                 >
-                  {isLoading ? 'Updating...' : 'Update Password'}
+                  {isLoading ? 'Updating...' : 'Reset Password'}
                 </Button>
 
                 {/* Back to Login */}
-                <div className="pt-4 text-center">
+                <div className="pt-2 text-center">
                   <Link
                     to="/login"
                     className="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"

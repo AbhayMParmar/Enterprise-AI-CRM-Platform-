@@ -1,6 +1,7 @@
 import { User } from '../models/User';
 import { Customer } from '../models/Customer';
 import { Deal } from '../models/Deal';
+import { Company } from '../models/Company';
 
 export const seedDatabase = async (): Promise<void> => {
   try {
@@ -9,32 +10,74 @@ export const seedDatabase = async (): Promise<void> => {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@aicrm.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin12!';
 
-    const usersToSeed = [
-      {
+    // 1. Ensure SuperAdmin user exists
+    let superAdmin = await User.findOne({ email: superAdminEmail.toLowerCase() });
+    if (!superAdmin) {
+      superAdmin = await User.create({
         name: 'Super Admin',
         email: superAdminEmail.toLowerCase(),
         password: superAdminPassword,
-        role: 'SuperAdmin' as const,
+        role: 'SUPER_ADMIN',
+        accountStatus: 'ACTIVE',
         isVerified: true,
-      },
-      {
+      });
+      console.log(`[SEED] Created default SuperAdmin user: ${superAdminEmail}`);
+    } else if (superAdmin.accountStatus !== 'ACTIVE') {
+      superAdmin.accountStatus = 'ACTIVE';
+      await superAdmin.save();
+    }
+
+    // 2. Ensure default Company exists
+    let demoCompany = await Company.findOne({ companyName: 'Acme Enterprise Solutions' });
+    if (!demoCompany) {
+      demoCompany = await Company.create({
+        companyName: 'Acme Enterprise Solutions',
+        ownerId: superAdmin._id,
+        businessEmail: adminEmail.toLowerCase(),
+        status: 'ACTIVE',
+        joinCode: 'ACME2026',
+        joinCodeActive: true,
+        joinCodeGeneratedAt: new Date(),
+        subscription: {
+          plan: 'premium',
+          status: 'active',
+          billingCycle: 'monthly',
+          amountPaid: 299,
+          aiFeaturesEnabled: true,
+          currentAiUsage: 0,
+        },
+      });
+      console.log(`[SEED] Created default demo company: Acme Enterprise Solutions (Join Code: ACME2026)`);
+    }
+
+    // 3. Ensure System Admin user exists and is active with companyId
+    let adminUser = await User.findOne({ email: adminEmail.toLowerCase() });
+    if (!adminUser) {
+      adminUser = await User.create({
         name: 'System Admin',
         email: adminEmail.toLowerCase(),
         password: adminPassword,
-        role: 'Admin' as const,
+        role: 'COMPANY_OWNER',
+        companyId: demoCompany._id,
+        accountStatus: 'ACTIVE',
         isVerified: true,
-      },
-    ];
-
-    for (const userData of usersToSeed) {
-      const existing = await User.findOne({ 
-        $or: [{ email: userData.email }, { role: userData.role }] 
+        companies: [{ companyId: demoCompany._id, role: 'COMPANY_OWNER' }],
       });
-      if (!existing) {
-        await User.create(userData);
-      } else {
-        existing.password = userData.password;
-        await existing.save();
+      console.log(`[SEED] Created default Admin user: ${adminEmail}`);
+    } else {
+      let needsSave = false;
+      if (adminUser.accountStatus !== 'ACTIVE') {
+        adminUser.accountStatus = 'ACTIVE';
+        needsSave = true;
+      }
+      if (!adminUser.companyId) {
+        adminUser.companyId = demoCompany._id as any;
+        adminUser.companies = [{ companyId: demoCompany._id as any, role: 'COMPANY_OWNER' as any }];
+        needsSave = true;
+      }
+      if (needsSave) {
+        await adminUser.save();
+        console.log(`[SEED] Updated default Admin user status to ACTIVE with companyId.`);
       }
     }
 

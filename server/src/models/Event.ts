@@ -12,6 +12,7 @@ export interface IEvent extends Document {
   deal?: Types.ObjectId;
   createdBy: Types.ObjectId;
   location?: string;
+  companyId?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,13 +48,18 @@ const eventSchema = new Schema<IEvent>(
       type: Schema.Types.ObjectId,
       ref: 'Deal',
     },
+    location: {
+      type: String,
+    },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      index: true,
+    },
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-    },
-    location: {
-      type: String,
     },
   },
   {

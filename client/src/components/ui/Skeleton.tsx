@@ -5,7 +5,7 @@ export interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({ variant = 'rect', className = '', ...props }) => {
-  const baseClass = 'bg-slate-200 animate-pulse-slow';
+  const baseClass = 'bg-slate-200 dark:bg-slate-800 animate-pulse-slow';
   
   const variants: Record<'text' | 'rect' | 'circle', string> = {
     text: 'h-4 w-full rounded',

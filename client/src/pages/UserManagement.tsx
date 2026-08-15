@@ -207,13 +207,13 @@ export const UserManagement = () => {
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'SuperAdmin':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/80 dark:text-purple-300 dark:border-purple-800';
       case 'Admin':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800';
       case 'SalesManager':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800';
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700';
     }
   };
 
@@ -226,7 +226,7 @@ export const UserManagement = () => {
             <span className="p-2 bg-white/20 rounded-xl backdrop-blur-md">
               <Shield className="w-6 h-6 text-white" />
             </span>
-            <h1 className="text-xl font-bold">User Management & Enterprise RBAC</h1>
+            <h1 className="text-xl font-bold">User Management &amp; Enterprise RBAC</h1>
           </div>
           <p className="text-xs text-blue-100 mt-1 max-w-xl">
             Provision users, assign granular roles (SuperAdmin, Admin, SalesManager, SalesRep), manage security permissions, and reset user credentials.
@@ -248,10 +248,10 @@ export const UserManagement = () => {
               <button
                 key={role}
                 onClick={() => setSelectedRoleFilter(role)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   selectedRoleFilter === role
                     ? 'bg-brand-primary text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
                 }`}
               >
                 {role}
@@ -262,13 +262,13 @@ export const UserManagement = () => {
           {/* Search Form */}
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-auto">
             <div className="relative flex-1 md:w-64">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
               <input
                 type="text"
                 placeholder="Search by name or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 border border-brand-border rounded-xl text-xs outline-none focus:border-brand-primary focus:bg-white transition-all"
+                className="w-full pl-9 pr-3 py-1.5 bg-slate-50 dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-xl text-xs text-slate-900 dark:text-white outline-none focus:border-brand-primary focus:bg-white dark:focus:bg-zinc-800 transition-all"
               />
             </div>
             <Button type="submit" variant="outline" size="sm">
@@ -280,7 +280,7 @@ export const UserManagement = () => {
 
       {/* Bulk Action Bar (if users selected and SuperAdmin) */}
       {selectedUserIds.length > 0 && currentUser?.role === 'SuperAdmin' && (
-        <div className="bg-slate-900 text-white px-4 py-3 rounded-xl flex items-center justify-between shadow-lg text-xs">
+        <div className="bg-slate-900 dark:bg-zinc-900 border border-zinc-800 text-white px-4 py-3 rounded-xl flex items-center justify-between shadow-lg text-xs">
           <span>{selectedUserIds.length} user(s) selected for bulk action</span>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="danger" onClick={() => handleBulkAction('delete')}>
@@ -297,7 +297,7 @@ export const UserManagement = () => {
       {/* User Records Table */}
       <Card>
         <CardHeader className="flex items-center justify-between py-3">
-          <h3 className="font-bold text-xs text-brand-textPrimary flex items-center gap-2">
+          <h3 className="font-bold text-xs text-brand-textPrimary dark:text-white flex items-center gap-2">
             <Users className="w-4 h-4 text-brand-primary" />
             Workspace Accounts ({users.length})
           </h3>
@@ -309,16 +309,16 @@ export const UserManagement = () => {
 
         <CardBody className="p-0 overflow-x-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-400 italic flex items-center justify-center gap-2">
+            <div className="p-8 text-center text-xs text-slate-400 dark:text-zinc-500 italic flex items-center justify-center gap-2">
               <RefreshCw className="w-4 h-4 animate-spin text-brand-primary" />
               Loading user registry...
             </div>
           ) : users.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 italic">No users found matching current filters.</div>
+            <div className="p-8 text-center text-xs text-slate-400 dark:text-zinc-500 italic">No users found matching current filters.</div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-brand-border text-slate-500 font-semibold">
+                <tr className="bg-slate-50 dark:bg-[#18181B] border-b border-brand-border dark:border-zinc-800 text-slate-500 dark:text-zinc-400 font-semibold">
                   {currentUser?.role === 'SuperAdmin' && (
                     <th className="p-3 w-10 text-center">
                       <input
@@ -342,7 +342,7 @@ export const UserManagement = () => {
                   <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
                 {users.map((u) => {
                   const avatarSrc =
                     u.avatar ||
@@ -353,7 +353,7 @@ export const UserManagement = () => {
                     currentUser?.role === 'SuperAdmin' || (currentUser?.role === 'Admin' && !isSuperAdminUser);
 
                   return (
-                    <tr key={u._id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={u._id} className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors">
                       {currentUser?.role === 'SuperAdmin' && (
                         <td className="p-3 text-center">
                           <input
@@ -373,10 +373,10 @@ export const UserManagement = () => {
                       )}
                       <td className="p-3">
                         <div className="flex items-center gap-3">
-                          <img src={avatarSrc} alt={u.name} className="w-8 h-8 rounded-full border border-slate-200 object-cover" />
+                          <img src={avatarSrc} alt={u.name} className="w-8 h-8 rounded-full border border-slate-200 dark:border-zinc-700 object-cover" />
                           <div>
-                            <p className="font-bold text-slate-800">{u.name}</p>
-                            <p className="text-slate-400 text-[11px]">{u.email}</p>
+                            <p className="font-bold text-slate-800 dark:text-white">{u.name}</p>
+                            <p className="text-slate-400 dark:text-zinc-400 text-[11px]">{u.email}</p>
                           </div>
                         </div>
                       </td>
@@ -405,17 +405,17 @@ export const UserManagement = () => {
                         <button
                           disabled={!canModifyUser || isSuperAdminUser}
                           onClick={() => handleStatusToggle(u)}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold transition-all ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all cursor-pointer ${
                             u.isVerified
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'bg-rose-50 text-rose-700 border border-rose-200'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-800 hover:opacity-90'
+                              : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-800 hover:opacity-90'
                           }`}
                         >
-                          {u.isVerified ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <XCircle className="w-3 h-3 text-rose-600" />}
+                          {u.isVerified ? <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> : <XCircle className="w-3 h-3 text-rose-600 dark:text-rose-400" />}
                           <span>{u.isVerified ? 'Active' : 'Suspended'}</span>
                         </button>
                       </td>
-                      <td className="p-3 text-slate-500 font-mono text-[11px]">
+                      <td className="p-3 text-slate-500 dark:text-zinc-400 font-mono text-[11px]">
                         {new Date(u.createdAt).toLocaleDateString()}
                       </td>
                       <td className="p-3 text-right">
@@ -427,7 +427,7 @@ export const UserManagement = () => {
                                 setIsResetModalOpen(true);
                               }}
                               title="Reset Password"
-                              className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-brand-primary transition-all"
+                              className="p-1.5 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg text-slate-500 dark:text-zinc-400 hover:text-brand-primary transition-all cursor-pointer"
                             >
                               <KeyRound className="w-4 h-4" />
                             </button>
@@ -436,7 +436,7 @@ export const UserManagement = () => {
                             <button
                               onClick={() => handleDeleteUser(u)}
                               title="Delete Account"
-                              className="p-1.5 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-600 transition-all"
+                              className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg text-slate-400 dark:text-rose-400 hover:text-rose-600 transition-all cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -454,9 +454,9 @@ export const UserManagement = () => {
 
       {/* Provision User Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl border border-brand-border flex flex-col gap-4">
-            <h3 className="font-bold text-base text-brand-textPrimary flex items-center gap-2">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl p-6 max-w-md w-full shadow-2xl border border-brand-border dark:border-zinc-800 flex flex-col gap-4">
+            <h3 className="font-bold text-base text-brand-textPrimary dark:text-white flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-brand-primary" />
               Provision New Workspace Account
             </h3>
@@ -465,11 +465,11 @@ export const UserManagement = () => {
               <Input label="Email Address" type="email" placeholder="alex@company.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
               <Input label="Initial Password" type="password" placeholder="At least 6 characters" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
               <div className="flex flex-col gap-1.5">
-                <label className="font-semibold text-brand-textPrimary select-none">Enterprise Role</label>
+                <label className="font-semibold text-brand-textPrimary dark:text-zinc-300 select-none">Enterprise Role</label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as any)}
-                  className="w-full px-3 py-2.5 text-xs sm:text-sm bg-white border border-brand-border rounded-lg outline-none text-brand-textPrimary focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/40 transition-all appearance-none cursor-pointer"
+                  className="w-full px-3 py-2.5 text-xs sm:text-sm bg-white dark:bg-zinc-800 border border-brand-border dark:border-zinc-700 rounded-lg outline-none text-brand-textPrimary dark:text-white focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/40 transition-all appearance-none cursor-pointer"
                 >
                   {/* SuperAdmin cannot create another SuperAdmin */}
                   {currentUser?.role === 'SuperAdmin' && <option value="Admin">Admin (Workspace Admin)</option>}
@@ -493,9 +493,9 @@ export const UserManagement = () => {
 
       {/* Reset Password Modal */}
       {isResetModalOpen && targetUser && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-brand-border flex flex-col gap-4">
-            <h3 className="font-bold text-base text-brand-textPrimary flex items-center gap-2">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-brand-border dark:border-zinc-800 flex flex-col gap-4">
+            <h3 className="font-bold text-base text-brand-textPrimary dark:text-white flex items-center gap-2">
               <KeyRound className="w-5 h-5 text-brand-primary" />
               Reset Password for {targetUser.name}
             </h3>

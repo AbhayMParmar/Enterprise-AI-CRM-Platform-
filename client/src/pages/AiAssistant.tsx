@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bot,
   Sparkles,
@@ -13,12 +14,15 @@ import {
   Brain,
   TrendingUp,
   Shield,
+  Lock,
+  ArrowRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useToast } from '../components/ui/Toast';
+import useAuthStore from '../store/authStore';
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 type Tab = 'copilot' | 'email' | 'summarizer';
@@ -40,8 +44,12 @@ const TABS: { id: Tab; label: string; icon: React.ElementType; desc: string }[] 
 
 /* ════════════════════════════════════════════════════════════════════════ */
 export const AiAssistant = () => {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { success, error } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('copilot');
+
+  const isExpired = user?.subscription?.status === 'expired' || user?.subscription?.aiAccess === false;
 
   /* Copilot */
   const [messages, setMessages] = useState<Msg[]>([
@@ -186,10 +194,7 @@ export const AiAssistant = () => {
           </div>
 
           {/* ── Tab bar ─────────────────────────────────────────────── */}
-          <div
-            className="relative z-10 flex items-center gap-0.5 px-3 sm:px-4 pb-2.5"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}
-          >
+          <div className="relative z-10 flex items-center gap-1.5 px-3 sm:px-4 pb-2.5 border-t border-white/10">
             {TABS.map((t) => {
               const Icon = t.icon;
               const active = activeTab === t.id;
@@ -197,14 +202,13 @@ export const AiAssistant = () => {
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
-                  className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-semibold transition-all duration-200 whitespace-nowrap select-none mt-2"
-                  style={
+                  className={`flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-200 whitespace-nowrap select-none mt-2 cursor-pointer ${
                     active
-                      ? { background: 'rgba(255,255,255,0.95)', color: '#2563eb', boxShadow: '0 2px 8px rgba(0,0,0,0.18)' }
-                      : { background: 'rgba(255,255,255,0.10)', color: 'rgba(219,234,254,0.9)', border: '1px solid rgba(255,255,255,0.14)' }
-                  }
+                      ? 'bg-white text-blue-600 dark:bg-[#121212] dark:text-white shadow-md'
+                      : 'bg-white/10 hover:bg-white/20 text-blue-100 border border-white/15'
+                  }`}
                 >
-                  <Icon className="w-2.5 h-2.5 sm:w-3 sm:h-3 flex-shrink-0" />
+                  <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                   <span>{t.label}</span>
                 </button>
               );
@@ -212,6 +216,29 @@ export const AiAssistant = () => {
           </div>
         </div>
       </div>
+
+      {/* ══ EXPIRED TRIAL / SUBSCRIPTION OVERLAY ═══════════════════════ */}
+      {isExpired && (
+        <div className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-red-500/10 border-b border-red-200 dark:border-red-900/40 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-100 dark:bg-rose-950/60 border border-red-200 dark:border-rose-800 flex items-center justify-center flex-shrink-0">
+              <Lock className="w-5 h-5 text-red-600 dark:text-rose-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm">Your 14-day free trial has ended.</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400">
+                Upgrade your plan to continue using AI Chat, Email Generator, and Meeting Summarizer.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/pricing')}
+            className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> View Plans <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* ══ TAB CONTENT — fills remaining height ═══════════════════════ */}
       <div className="flex-1 min-h-0">
@@ -225,68 +252,55 @@ export const AiAssistant = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18 }}
-              className="h-full flex flex-col rounded-2xl overflow-hidden"
-              style={{
-                background: '#fff',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 4px 24px rgba(37,99,235,0.07), 0 1px 4px rgba(0,0,0,0.04)',
-              }}
+              className="h-full flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md"
             >
               {/* Chat sub-header */}
-              <div
-                className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5"
-                style={{ borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to right, #f8faff, #fafafa)' }}
-              >
+              <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 sm:py-2.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#18181B]">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-[11px] sm:text-xs font-bold text-slate-800 leading-tight">Interactive AI Sales Strategist</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-400 leading-tight">Ask anything about pipeline, objections &amp; closing</p>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white leading-tight">Interactive AI Sales Strategist</p>
+                    <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 leading-tight">Ask anything about pipeline, objections &amp; closing</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <TrendingUp className="w-3 h-3 text-emerald-500" />
-                  <span className="text-[9px] sm:text-[10px] font-semibold text-emerald-600 hidden xs:inline">Live</span>
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] sm:text-xs font-semibold text-emerald-600 dark:text-emerald-400 hidden xs:inline">Live</span>
                 </div>
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 sm:gap-2.5 min-h-0">
+              <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-2.5 sm:py-3.5 flex flex-col gap-2.5 sm:gap-3 min-h-0">
                 {messages.map((m, idx) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.15 }}
-                    className={`flex gap-1.5 sm:gap-2 max-w-[92%] sm:max-w-[85%] md:max-w-[78%] ${
+                    className={`flex gap-2 sm:gap-2.5 max-w-[92%] sm:max-w-[85%] md:max-w-[78%] ${
                       m.role === 'user' ? 'ml-auto flex-row-reverse' : ''
                     }`}
                   >
                     {/* Avatar */}
                     <div
-                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[8px] sm:text-[9px] font-bold flex-shrink-0 mt-0.5 ${
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold flex-shrink-0 mt-0.5 ${
                         m.role === 'user'
                           ? 'bg-indigo-600 text-white'
                           : 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white'
                       }`}
                     >
-                      {m.role === 'user' ? 'Y' : <Bot className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
+                      {m.role === 'user' ? 'Y' : <Bot className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
                     </div>
 
                     {/* Bubble */}
                     <div
-                      className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-2xl text-[11px] sm:text-xs leading-relaxed break-words ${
+                      className={`px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed break-words ${
                         m.role === 'user'
-                          ? 'rounded-tr-sm text-white'
-                          : 'rounded-tl-sm text-slate-700 whitespace-pre-wrap'
+                          ? 'rounded-tr-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-md'
+                          : 'rounded-tl-sm text-slate-800 dark:text-zinc-200 bg-slate-100 dark:bg-[#18181B] border border-slate-200/80 dark:border-zinc-800 whitespace-pre-wrap'
                       }`}
-                      style={
-                        m.role === 'user'
-                          ? { background: 'linear-gradient(135deg, #2563eb, #4f46e5)', boxShadow: '0 2px 10px rgba(37,99,235,0.25)' }
-                          : { background: '#f8fafc', border: '1px solid #e8edf5' }
-                      }
                     >
                       {m.content}
                     </div>
@@ -297,15 +311,15 @@ export const AiAssistant = () => {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="flex items-center gap-2 text-[11px] text-slate-400"
+                    className="flex items-center gap-2 text-xs text-slate-400 dark:text-zinc-400"
                   >
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                     </div>
-                    <div className="flex items-center gap-1 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-2xl rounded-tl-sm">
-                      <span className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-1 h-1 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#18181B] border border-slate-200 dark:border-zinc-800 px-3.5 py-2 rounded-2xl rounded-tl-sm">
+                      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </motion.div>
                 )}
@@ -313,13 +327,10 @@ export const AiAssistant = () => {
               </div>
 
               {/* Quick prompts + Input */}
-              <div
-                className="flex-shrink-0 px-3 sm:px-4 pt-2 pb-2.5 sm:pb-3 flex flex-col gap-1.5 sm:gap-2"
-                style={{ borderTop: '1px solid #f1f5f9', background: 'linear-gradient(to top, #f8faff, #fff)' }}
-              >
+              <div className="flex-shrink-0 px-3 sm:px-4 pt-2 pb-2.5 sm:pb-3 flex flex-col gap-2 sm:gap-2.5 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/90 dark:bg-[#18181B]">
                 {/* Chips */}
-                <div className="flex items-center gap-1 overflow-x-auto">
-                  <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium whitespace-nowrap flex-shrink-0 mr-0.5">
+                <div className="flex items-center gap-1.5 overflow-x-auto">
+                  <span className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 font-semibold whitespace-nowrap flex-shrink-0 mr-0.5">
                     Try:
                   </span>
                   {QUICK_PROMPTS.map((q) => (
@@ -327,10 +338,7 @@ export const AiAssistant = () => {
                       key={q.label}
                       type="button"
                       onClick={() => handleSendCopilot(undefined, q.text)}
-                      className="flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-medium whitespace-nowrap flex-shrink-0 transition-all duration-150 active:scale-95"
-                      style={{ background: '#f0f4ff', border: '1px solid #c7d7fd', color: '#3b5bdb' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#dce6ff')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '#f0f4ff')}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-150 active:scale-95 bg-blue-50 dark:bg-zinc-800/80 hover:bg-blue-100 dark:hover:bg-zinc-700 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-zinc-700 cursor-pointer"
                     >
                       <span>{q.icon}</span>
                       <span>{q.label}</span>
@@ -345,22 +353,14 @@ export const AiAssistant = () => {
                     placeholder="Ask about pipeline strategy, objections, closing tactics…"
                     value={inputPrompt}
                     onChange={e => setInputPrompt(e.target.value)}
-                    className="flex-1 min-w-0 px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-                    style={{
-                      background: '#fff',
-                      border: '1.5px solid #e2e8f0',
-                      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.04)',
-                    }}
-                    onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-                    onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                    className="flex-1 min-w-0 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all"
                   />
                   <button
                     type="submit"
                     disabled={isCopilotLoading || !inputPrompt.trim()}
-                    className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
-                    style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)', boxShadow: '0 2px 8px rgba(37,99,235,0.35)' }}
+                    className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md cursor-pointer"
                   >
-                    <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                    <Send className="w-4 h-4 text-white" />
                   </button>
                 </form>
               </div>
@@ -378,21 +378,15 @@ export const AiAssistant = () => {
               className="h-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3"
             >
               {/* Left: form */}
-              <div
-                className="rounded-2xl flex flex-col overflow-hidden"
-                style={{ background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(37,99,235,0.07)' }}
-              >
+              <div className="rounded-2xl flex flex-col overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md">
                 {/* Panel header */}
-                <div
-                  className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2.5"
-                  style={{ borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to right, #f8faff, #fafafa)' }}
-                >
+                <div className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#18181B]">
                   <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-3 h-3 text-white" />
+                    <Mail className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div>
-                    <p className="text-[11px] sm:text-xs font-bold text-slate-800">Email Campaign Parameters</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-400">Configure your AI outreach</p>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">Email Campaign Parameters</p>
+                    <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400">Configure your AI outreach</p>
                   </div>
                 </div>
 
@@ -402,28 +396,22 @@ export const AiAssistant = () => {
                     {/* 2-col row for name + company */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Recipient</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wide">Recipient</label>
                         <input
                           value={recipientName}
                           onChange={e => setRecipientName(e.target.value)}
                           placeholder="e.g. John Doe"
                           required
-                          className="px-2.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-                          style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0' }}
-                          onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-                          onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                          className="px-3 py-2 rounded-lg text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 transition-all"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Company</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wide">Company</label>
                         <input
                           value={companyName}
                           onChange={e => setCompanyName(e.target.value)}
                           placeholder="e.g. Acme Corp"
-                          className="px-2.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-                          style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0' }}
-                          onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-                          onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                          className="px-3 py-2 rounded-lg text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 transition-all"
                         />
                       </div>
                     </div>
@@ -431,27 +419,21 @@ export const AiAssistant = () => {
                     {/* 2-col row for deal value + email type */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Deal Value ($)</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wide">Deal Value ($)</label>
                         <input
                           type="number"
                           value={dealValue}
                           onChange={e => setDealValue(e.target.value)}
                           placeholder="50000"
-                          className="px-2.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs text-slate-800 placeholder:text-slate-400 outline-none transition-all"
-                          style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0' }}
-                          onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-                          onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                          className="px-3 py-2 rounded-lg text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 transition-all"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <label className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Email Type</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wide">Email Type</label>
                         <select
                           value={emailType}
                           onChange={e => setEmailType(e.target.value as any)}
-                          className="px-2.5 py-1.5 sm:py-2 rounded-lg text-[11px] sm:text-xs text-slate-800 outline-none transition-all cursor-pointer appearance-none"
-                          style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0' }}
-                          onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-                          onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                          className="px-3 py-2 rounded-lg text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-all cursor-pointer appearance-none"
                         >
                           <option value="Cold Outreach">Cold Outreach</option>
                           <option value="Follow-up">Follow-up</option>
@@ -463,35 +445,31 @@ export const AiAssistant = () => {
 
                     {/* Notes / Tone */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] sm:text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Additional Notes / Tone</label>
+                      <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wide">Additional Notes / Tone</label>
                       <textarea
                         rows={3}
                         value={customInstructions}
                         onChange={e => setCustomInstructions(e.target.value)}
                         placeholder="e.g. Emphasize fast ROI and 24/7 customer support…"
-                        className="px-2.5 py-2 rounded-lg text-[11px] sm:text-xs text-slate-800 placeholder:text-slate-400 outline-none resize-none transition-all"
-                        style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0' }}
-                        onFocus={e => (e.currentTarget.style.borderColor = '#2563eb')}
-                        onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
+                        className="px-3 py-2 rounded-lg text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none resize-none focus:border-blue-500 transition-all"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={isEmailLoading}
-                      className="flex items-center justify-center gap-2 w-full py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold text-white transition-all duration-200 disabled:opacity-50 active:scale-[0.98]"
-                      style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)', boxShadow: '0 4px 14px rgba(37,99,235,0.35)' }}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] shadow-md cursor-pointer"
                     >
                       {isEmailLoading ? (
                         <>
-                          <Sparkles className="w-3 h-3 animate-spin" />
+                          <Sparkles className="w-3.5 h-3.5 animate-spin" />
                           Generating…
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-3 h-3" />
+                          <Sparkles className="w-3.5 h-3.5" />
                           Generate Email with AI
-                          <ChevronRight className="w-3 h-3 opacity-70" />
+                          <ChevronRight className="w-3.5 h-3.5 opacity-70" />
                         </>
                       )}
                     </button>
@@ -500,50 +478,40 @@ export const AiAssistant = () => {
               </div>
 
               {/* Right: preview */}
-              <div
-                className="rounded-2xl flex flex-col overflow-hidden"
-                style={{ background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(37,99,235,0.07)' }}
-              >
-                <div
-                  className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2.5"
-                  style={{ borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to right, #f8faff, #fafafa)' }}
-                >
+              <div className="rounded-2xl flex flex-col overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md">
+                <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#18181B]">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-3 h-3 text-white" />
+                      <FileText className="w-3.5 h-3.5 text-white" />
                     </div>
                     <div>
-                      <p className="text-[11px] sm:text-xs font-bold text-slate-800">AI Generated Email Draft</p>
-                      <p className="text-[9px] sm:text-[10px] text-slate-400">Ready to send</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">AI Generated Email Draft</p>
+                      <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400">Ready to send</p>
                     </div>
                   </div>
                   {generatedEmail && (
                     <button
                       onClick={() => copyToClipboard(generatedEmail)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all active:scale-95"
-                      style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a' }}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 cursor-pointer"
                     >
-                      {isCopied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
+                      {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                       {isCopied ? 'Copied!' : 'Copy'}
                     </button>
                   )}
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 sm:p-4">
                   {generatedEmail ? (
-                    <pre className="font-mono text-[10px] sm:text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed">
+                    <pre className="font-mono text-xs sm:text-sm text-slate-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
                       {generatedEmail}
                     </pre>
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
-                      <div
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center"
-                        style={{ background: 'linear-gradient(135deg, #eff6ff, #eef2ff)' }}
-                      >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/50">
                         <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-400" />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-slate-500">No draft yet</p>
-                        <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Configure parameters and generate your email</p>
+                        <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-zinc-400">No draft yet</p>
+                        <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-500 mt-0.5">Configure parameters and generate your email</p>
                       </div>
                     </div>
                   )}
@@ -563,44 +531,35 @@ export const AiAssistant = () => {
               className="h-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3"
             >
               {/* Left: notes input */}
-              <div
-                className="rounded-2xl flex flex-col overflow-hidden"
-                style={{ background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(37,99,235,0.07)' }}
-              >
-                <div
-                  className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2.5"
-                  style={{ borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to right, #f8faff, #fafafa)' }}
-                >
+              <div className="rounded-2xl flex flex-col overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md">
+                <div className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#18181B]">
                   <div className="w-6 h-6 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
-                    <FileText className="w-3 h-3 text-white" />
+                    <FileText className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div>
-                    <p className="text-[11px] sm:text-xs font-bold text-slate-800">Raw Meeting Notes</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-400">Paste unstructured call notes or transcripts</p>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">Raw Meeting Notes</p>
+                    <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400">Paste unstructured call notes or transcripts</p>
                   </div>
                 </div>
                 <div className="flex-1 flex flex-col overflow-hidden px-3 sm:px-4 py-2.5 sm:py-3">
                   <form onSubmit={handleSummarizeNotes} className="flex-1 flex flex-col gap-2.5">
                     <textarea
-                      className="flex-1 w-full px-2.5 py-2 rounded-xl text-[11px] sm:text-xs text-slate-800 placeholder:text-slate-400 outline-none resize-none transition-all leading-relaxed"
-                      style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', minHeight: '120px' }}
+                      className="flex-1 w-full px-3 py-2 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none resize-none focus:border-violet-500 transition-all leading-relaxed"
+                      style={{ minHeight: '120px' }}
                       placeholder="Paste raw unstructured call notes, transcript snippets, or discussion points here…"
                       value={rawNotes}
                       onChange={e => setRawNotes(e.target.value)}
-                      onFocus={e => (e.currentTarget.style.borderColor = '#7c3aed')}
-                      onBlur={e  => (e.currentTarget.style.borderColor = '#e2e8f0')}
                       required
                     />
                     <button
                       type="submit"
                       disabled={isSummaryLoading}
-                      className="flex items-center justify-center gap-2 w-full py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-semibold text-white transition-all duration-200 disabled:opacity-50 active:scale-[0.98] flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #7c3aed, #6366f1)', boxShadow: '0 4px 14px rgba(124,58,237,0.35)' }}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] flex-shrink-0 shadow-md cursor-pointer"
                     >
                       {isSummaryLoading ? (
-                        <><Zap className="w-3 h-3 animate-spin" /> Processing…</>
+                        <><Zap className="w-3.5 h-3.5 animate-spin" /> Processing…</>
                       ) : (
-                        <><Zap className="w-3 h-3" /> Summarize &amp; Extract Action Items <ChevronRight className="w-3 h-3 opacity-70" /></>
+                        <><Zap className="w-3.5 h-3.5" /> Summarize &amp; Extract Action Items <ChevronRight className="w-3.5 h-3.5 opacity-70" /></>
                       )}
                     </button>
                   </form>
@@ -608,50 +567,40 @@ export const AiAssistant = () => {
               </div>
 
               {/* Right: output */}
-              <div
-                className="rounded-2xl flex flex-col overflow-hidden"
-                style={{ background: '#fff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(37,99,235,0.07)' }}
-              >
-                <div
-                  className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2.5"
-                  style={{ borderBottom: '1px solid #f1f5f9', background: 'linear-gradient(to right, #f8faff, #fafafa)' }}
-                >
+              <div className="rounded-2xl flex flex-col overflow-hidden bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 shadow-md">
+                <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#18181B]">
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
-                      <Sparkles className="w-3 h-3 text-white" />
+                      <Sparkles className="w-3.5 h-3.5 text-white" />
                     </div>
                     <div>
-                      <p className="text-[11px] sm:text-xs font-bold text-slate-800">Structured Executive Summary</p>
-                      <p className="text-[9px] sm:text-[10px] text-slate-400">Key insights &amp; action items</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white">Structured Executive Summary</p>
+                      <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400">Key insights &amp; action items</p>
                     </div>
                   </div>
                   {summarizedOutput && (
                     <button
                       onClick={() => copyToClipboard(summarizedOutput)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-[11px] font-semibold transition-all active:scale-95"
-                      style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#16a34a' }}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 cursor-pointer"
                     >
-                      {isCopied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
+                      {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                       {isCopied ? 'Copied!' : 'Copy'}
                     </button>
                   )}
                 </div>
                 <div className="flex-1 overflow-y-auto p-3 sm:p-4">
                   {summarizedOutput ? (
-                    <pre className="font-mono text-[10px] sm:text-[11px] text-slate-700 whitespace-pre-wrap leading-relaxed">
+                    <pre className="font-mono text-xs sm:text-sm text-slate-800 dark:text-zinc-200 whitespace-pre-wrap leading-relaxed">
                       {summarizedOutput}
                     </pre>
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center gap-3 text-center">
-                      <div
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center"
-                        style={{ background: 'linear-gradient(135deg, #fef3c7, #fde68a)' }}
-                      >
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center bg-amber-50 dark:bg-amber-950/50">
                         <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500" />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-slate-500">No summary yet</p>
-                        <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">Paste meeting notes to extract summary &amp; action items</p>
+                        <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-zinc-400">No summary yet</p>
+                        <p className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-500 mt-0.5">Paste meeting notes to extract summary &amp; action items</p>
                       </div>
                     </div>
                   )}

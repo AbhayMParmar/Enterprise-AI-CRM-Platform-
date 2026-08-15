@@ -36,6 +36,15 @@ export const getDeals = async (req: AuthenticatedRequest, res: Response): Promis
     const { search, stage, assignedTo } = req.query;
 
     const query: any = {};
+
+    // Multi-tenant company isolation filter (unless SUPER_ADMIN)
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) {
+        query.companyId = new Types.ObjectId(activeCompanyId);
+      }
+    }
+
     if (stage && stage !== 'All') {
       query.stage = stage;
     }
@@ -90,6 +99,7 @@ export const createDeal = async (req: AuthenticatedRequest, res: Response): Prom
 
     const data = validation.data;
     const probability = data.probability !== undefined ? data.probability : stageProbabilityMap[data.stage];
+    const activeCompanyId = req.companyId || req.user.companyId;
 
     const newDeal = await Deal.create({
       title: data.title,
@@ -100,6 +110,7 @@ export const createDeal = async (req: AuthenticatedRequest, res: Response): Prom
       expectedCloseDate: data.expectedCloseDate ? new Date(data.expectedCloseDate) : undefined,
       assignedTo: data.assignedTo ? new Types.ObjectId(data.assignedTo) : undefined,
       teamId: data.teamId ? new Types.ObjectId(data.teamId) : undefined,
+      companyId: activeCompanyId ? new Types.ObjectId(activeCompanyId) : undefined,
     });
 
     await LoggerService.log(req.user.id, 'DEAL_CREATE', { dealId: newDeal.id, title: newDeal.title, value: newDeal.value });
@@ -132,15 +143,21 @@ export const updateDealStage = async (req: AuthenticatedRequest, res: Response):
     const targetStage = stage as DealStage;
     const probability = stageProbabilityMap[targetStage];
 
-    const deal = await Deal.findByIdAndUpdate(
-      id,
+    const query: any = { _id: id };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
+    const deal = await Deal.findOneAndUpdate(
+      query,
       { stage: targetStage, probability },
       { new: true }
     ).populate('customer', 'name email company')
      .populate('assignedTo', 'name email avatar role');
 
     if (!deal) {
-      res.status(404).json({ message: 'Deal not found' });
+      res.status(404).json({ message: 'Deal not found or unauthorized' });
       return;
     }
 
@@ -165,12 +182,18 @@ export const updateDeal = async (req: AuthenticatedRequest, res: Response): Prom
     if (updateData.customer) updateData.customer = new Types.ObjectId(String(updateData.customer));
     if (updateData.assignedTo) updateData.assignedTo = new Types.ObjectId(String(updateData.assignedTo));
 
-    const deal = await Deal.findByIdAndUpdate(id, updateData, { new: true })
+    const query: any = { _id: id };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
+    const deal = await Deal.findOneAndUpdate(query, updateData, { new: true })
       .populate('customer', 'name email company')
       .populate('assignedTo', 'name email avatar role');
 
     if (!deal) {
-      res.status(404).json({ message: 'Deal not found' });
+      res.status(404).json({ message: 'Deal not found or unauthorized' });
       return;
     }
 
@@ -190,10 +213,17 @@ export const deleteDeal = async (req: AuthenticatedRequest, res: Response): Prom
     }
 
     const { id } = req.params;
-    const deal = await Deal.findByIdAndDelete(id);
+
+    const query: any = { _id: id };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
+    const deal = await Deal.findOneAndDelete(query);
 
     if (!deal) {
-      res.status(404).json({ message: 'Deal not found' });
+      res.status(404).json({ message: 'Deal not found or unauthorized' });
       return;
     }
 
@@ -212,7 +242,13 @@ export const getSalesAnalytics = async (req: AuthenticatedRequest, res: Response
       return;
     }
 
-    const deals = await Deal.find().populate('assignedTo', 'name email avatar');
+    const query: any = {};
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
+    const deals = await Deal.find(query).populate('assignedTo', 'name email avatar');
 
     // Fetch manual KPI settings override
     let kpiDoc = await KpiSetting.findOne();
@@ -296,13 +332,13 @@ export const getSalesAnalytics = async (req: AuthenticatedRequest, res: Response
 
     res.status(200).json({
       analytics: {
-        totalClosedRevenue: kpiDoc.closedRevenue,
-        activePipelineValue: kpiDoc.activePipeline,
+        totalClosedRevenue: kpiDoc.closedRevenue || totalClosedRevenue,
+        activePipelineValue: kpiDoc.activePipeline || activePipelineValue,
         wonCount,
         lostCount,
         totalDeals: deals.length,
-        winRate: kpiDoc.winRate,
-        avgDealSize: kpiDoc.avgDealSize,
+        winRate: kpiDoc.winRate || (deals.length ? Math.round((wonCount / deals.length) * 100) : 0),
+        avgDealSize: kpiDoc.avgDealSize || (deals.length ? Math.round(totalClosedRevenue / (wonCount || 1)) : 0),
         stageBreakdown,
         leaderboard: Object.values(repPerformance).sort((a, b) => b.wonValue - a.wonValue),
         monthlyData,

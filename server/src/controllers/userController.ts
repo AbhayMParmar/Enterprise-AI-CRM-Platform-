@@ -4,7 +4,7 @@ import { User, UserRole } from '../models/User';
 import { Deal } from '../models/Deal';
 import { Customer } from '../models/Customer';
 import { ActivityLog } from '../models/ActivityLog';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 // -----------------------------------------------------------
 // GET /api/users — List all workspace users (with search & role filter)
@@ -14,7 +14,15 @@ export const getAllUsers = async (req: AuthenticatedRequest, res: Response): Pro
     const { role, search } = req.query;
     const filter: any = {};
 
-    if (role && ['SuperAdmin', 'Admin', 'SalesManager', 'SalesRep'].includes(String(role))) {
+    // Multi-tenant company isolation filter (unless SUPER_ADMIN)
+    if (req.user?.role !== 'SUPER_ADMIN' && req.user?.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user?.companyId;
+      if (activeCompanyId) {
+        filter.companyId = new Types.ObjectId(activeCompanyId);
+      }
+    }
+
+    if (role && ['SUPER_ADMIN', 'COMPANY_OWNER', 'SALES_MANAGER', 'SALES_REPRESENTATIVE', 'SuperAdmin', 'Admin', 'SalesManager', 'SalesRep'].includes(String(role))) {
       filter.role = String(role);
     }
 
@@ -23,7 +31,7 @@ export const getAllUsers = async (req: AuthenticatedRequest, res: Response): Pro
       filter.$or = [{ name: searchRegex }, { email: searchRegex }, { company: searchRegex }];
     }
 
-    const users = await User.find(filter, 'name email role avatar phone company jobTitle isVerified lastLogin createdAt')
+    const users = await User.find(filter, 'name email role avatar phone company jobTitle accountStatus isVerified lastLogin createdAt')
       .sort({ createdAt: -1 });
 
     res.status(200).json({ users, total: users.length });

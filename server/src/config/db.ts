@@ -49,6 +49,15 @@ export const connectDB = async (): Promise<typeof mongoose | null> => {
         connectTimeoutMS: 10000,        // 10s timeout for serverless cold starts
       });
       console.log('✅ MongoDB connected successfully.');
+      
+      // Lazily seed default packages once upon initial connection
+      try {
+        const { seedDefaultPackages } = await import('../models/Package');
+        await seedDefaultPackages();
+      } catch (seedErr: any) {
+        console.warn('[MongoDB Seeder Warning]', seedErr.message);
+      }
+
       return conn;
     } catch (primaryErr: any) {
       console.error('[MongoDB Error] Connection failed:', primaryErr?.message || primaryErr);

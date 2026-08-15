@@ -17,6 +17,7 @@ export interface ICustomer extends Document {
   value: number;
   assignedTo?: Types.ObjectId;
   teamId?: Types.ObjectId;
+  companyId?: Types.ObjectId;
   notes: ICustomerNote[];
   tags: string[];
   createdAt: Date;
@@ -77,6 +78,11 @@ const customerSchema = new Schema<ICustomer>(
     teamId: {
       type: Schema.Types.ObjectId,
       ref: 'Team',
+    },
+    companyId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Company',
+      index: true,
     },
     notes: [customerNoteSchema],
     tags: [

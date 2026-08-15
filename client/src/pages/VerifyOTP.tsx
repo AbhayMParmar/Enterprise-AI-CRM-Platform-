@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShieldCheck, ArrowLeft, Sparkles, AlertCircle, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
+import { ShieldCheck, ArrowLeft, Sparkles, AlertCircle, CheckCircle2, RefreshCw, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 import { useToast } from '../components/ui/Toast';
@@ -11,8 +11,15 @@ export const VerifyOTP = () => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [isResending, setIsResending] = useState(false);
-  const [countdown, setCountdown] = useState(60);
+
+  // OTP expiry countdown: 2 minutes = 120 seconds
+  const [otpExpiry, setOtpExpiry] = useState(120);
+  const [otpExpired, setOtpExpired] = useState(false);
+
+  // Resend cooldown: 60 seconds
+  const [resendCountdown, setResendCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -23,29 +30,51 @@ export const VerifyOTP = () => {
 
   const email = location.state?.email || '';
 
-  // Countdown timer for resend
+  // ─── OTP Expiry Countdown (2 minutes) ───────────────────────────────────────
   useEffect(() => {
-    if (countdown > 0 && !canResend) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (countdown === 0) {
-      setCanResend(true);
+    if (otpExpired || isSuccess) return;
+    if (otpExpiry <= 0) {
+      setOtpExpired(true);
+      setError('Your verification code has expired. Please request a new one.');
+      return;
     }
-  }, [countdown, canResend]);
+    const timer = setTimeout(() => setOtpExpiry((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [otpExpiry, otpExpired, isSuccess]);
 
-  // Auto-focus first input on mount
+  // ─── Resend Cooldown (60 seconds) ────────────────────────────────────────────
+  useEffect(() => {
+    if (canResend || isSuccess) return;
+    if (resendCountdown <= 0) {
+      setCanResend(true);
+      return;
+    }
+    const timer = setTimeout(() => setResendCountdown((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCountdown, canResend, isSuccess]);
+
+  // ─── Auto-focus first input ───────────────────────────────────────────────────
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
     }
   }, []);
 
+  // ─── Format expiry timer as M:SS ─────────────────────────────────────────────
+  const formatExpiry = (seconds: number): string => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // ─── OTP Input Handlers ──────────────────────────────────────────────────────
+
   const handleOtpChange = (index: number, value: string) => {
-    // Only allow numbers
+    // Only allow single digit numbers
     if (!/^\d*$/.test(value)) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = value.slice(-1); // Take only the last digit if somehow multiple
     setOtp(newOtp);
 
     // Auto-move to next input
@@ -57,27 +86,9 @@ export const VerifyOTP = () => {
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    // Handle backspace
+    // Move back on backspace when current field is empty
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    }
-
-    // Handle paste
-    if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      navigator.clipboard.readText().then((pastedText) => {
-        const digits = pastedText.replace(/\D/g, '').slice(0, 6);
-        if (digits.length > 0) {
-          const newOtp = [...otp];
-          for (let i = 0; i < 6; i++) {
-            newOtp[i] = digits[i] || '';
-          }
-          setOtp(newOtp);
-          // Focus the last filled input
-          const lastIndex = Math.min(digits.length, 6) - 1;
-          inputRefs.current[lastIndex]?.focus();
-        }
-      });
     }
   };
 
@@ -85,17 +96,20 @@ export const VerifyOTP = () => {
     e.preventDefault();
     const pastedText = e.clipboardData.getData('text');
     const digits = pastedText.replace(/\D/g, '').slice(0, 6);
-    
+
     if (digits.length > 0) {
-      const newOtp = [...otp];
-      for (let i = 0; i < 6; i++) {
-        newOtp[i] = digits[i] || '';
+      const newOtp = Array(6).fill('');
+      for (let i = 0; i < digits.length; i++) {
+        newOtp[i] = digits[i];
       }
       setOtp(newOtp);
-      const lastIndex = Math.min(digits.length, 6) - 1;
-      inputRefs.current[lastIndex]?.focus();
+      // Focus the next empty field or the last field
+      const focusIndex = Math.min(digits.length, 5);
+      inputRefs.current[focusIndex]?.focus();
     }
   };
+
+  // ─── Resend OTP ───────────────────────────────────────────────────────────────
 
   const handleResend = async () => {
     if (!canResend || isResending) return;
@@ -105,22 +119,29 @@ export const VerifyOTP = () => {
 
     try {
       const response = await api.post('/auth/forgot-password', { email });
-      
+
       if (response.data.success) {
         success('New verification code sent!');
-        setCountdown(60);
+        // Reset both countdowns
+        setOtpExpiry(120);
+        setOtpExpired(false);
+        setResendCountdown(60);
         setCanResend(false);
+        // Clear OTP inputs and focus first
         setOtp(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to resend code. Please try again.';
+      const errorMessage =
+        err.response?.data?.message || 'Failed to resend code. Please try again.';
       setError(errorMessage);
       toastError(errorMessage);
     } finally {
       setIsResending(false);
     }
   };
+
+  // ─── Verify OTP ───────────────────────────────────────────────────────────────
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +150,12 @@ export const VerifyOTP = () => {
     const otpValue = otp.join('');
 
     if (otpValue.length !== 6) {
-      setError('Please enter all 6 digits');
+      setError('Please enter all 6 digits of the verification code');
+      return;
+    }
+
+    if (otpExpired) {
+      setError('Your verification code has expired. Please request a new one.');
       return;
     }
 
@@ -137,22 +163,26 @@ export const VerifyOTP = () => {
 
     try {
       const response = await api.post('/auth/verify-reset-otp', { email, otp: otpValue });
-      
+
       if (response.data.success) {
+        const { resetToken } = response.data;
+
         setIsSuccess(true);
         success('OTP verified successfully!');
-        
-        // Redirect to reset password page after 1.5 seconds
+
+        // Navigate to reset password page with the secure reset token
+        // We pass resetToken (not the OTP itself) — the token is what authorizes the password reset
         setTimeout(() => {
-          navigate('/reset-password', { state: { email, otp: otpValue } });
+          navigate('/reset-password', { state: { email, resetToken } });
         }, 1500);
       }
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Invalid verification code';
+      const errorMessage =
+        err.response?.data?.message || 'Invalid verification code. Please try again.';
       setError(errorMessage);
       toastError(errorMessage);
-      
-      // Clear OTP on error
+
+      // Clear OTP inputs on error so user can re-enter
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } finally {
@@ -175,13 +205,18 @@ export const VerifyOTP = () => {
               </div>
               <span className="text-sm font-bold text-slate-800 tracking-tight">AI CRM Suite</span>
             </div>
-            
+
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
-              Verify Email
+              Verify Your Email
             </h1>
             <p className="text-sm text-slate-500 font-medium">
-              Enter the 6-digit verification code
+              Enter the 6-digit code sent to
             </p>
+            {email && (
+              <p className="text-sm font-semibold text-blue-600 mt-1 truncate px-4">
+                {email}
+              </p>
+            )}
           </CardHeader>
 
           <CardBody className="p-6 pt-4">
@@ -198,11 +233,26 @@ export const VerifyOTP = () => {
                   Verification Successful!
                 </h2>
                 <p className="text-sm text-slate-600 mb-4">
-                  Redirecting to reset password...
+                  Redirecting to reset your password...
                 </p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* OTP Expiry Timer */}
+                {!otpExpired ? (
+                  <div className={`flex items-center justify-center gap-2 text-sm font-semibold ${
+                    otpExpiry <= 30 ? 'text-rose-500' : 'text-slate-500'
+                  }`}>
+                    <Clock className="w-4 h-4" />
+                    <span>Code expires in <span className="font-bold">{formatExpiry(otpExpiry)}</span></span>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-700 flex items-center gap-2 justify-center">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    Code expired. Please request a new one.
+                  </div>
+                )}
+
                 {/* OTP Input Boxes */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-3 text-center">
@@ -220,7 +270,8 @@ export const VerifyOTP = () => {
                         onChange={(e) => handleOtpChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={handlePaste}
-                        className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 rounded-xl outline-none transition-all ${
+                        disabled={otpExpired || isLoading}
+                        className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold border-2 rounded-xl outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                           error
                             ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-2 focus:ring-rose-400/20'
                             : 'border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-400/20'
@@ -228,7 +279,7 @@ export const VerifyOTP = () => {
                       />
                     ))}
                   </div>
-                  {error && (
+                  {error && !otpExpired && (
                     <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
@@ -254,7 +305,7 @@ export const VerifyOTP = () => {
                     </button>
                   ) : (
                     <p className="text-xs text-slate-500">
-                      Resend code in <span className="font-bold text-slate-700">{countdown}s</span>
+                      Resend code in <span className="font-bold text-slate-700">{resendCountdown}s</span>
                     </p>
                   )}
                 </div>
@@ -265,13 +316,14 @@ export const VerifyOTP = () => {
                   variant="primary"
                   size="lg"
                   isLoading={isLoading}
+                  disabled={otpExpired || otp.join('').length !== 6}
                   className="w-full"
                 >
                   {isLoading ? 'Verifying...' : 'Verify Code'}
                 </Button>
 
                 {/* Back to Forgot Password */}
-                <div className="pt-4 text-center">
+                <div className="pt-2 text-center">
                   <Link
                     to="/forgot-password"
                     state={{ email }}
@@ -289,7 +341,7 @@ export const VerifyOTP = () => {
         {/* Security Notice */}
         <div className="mt-6 text-center">
           <p className="text-[11px] text-slate-400">
-            🔒 Code expires in 5 minutes. Never share your code with anyone.
+            🔒 Code expires in 2 minutes. Never share your verification code with anyone.
           </p>
         </div>
       </div>

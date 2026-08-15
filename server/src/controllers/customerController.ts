@@ -33,9 +33,12 @@ export const createCustomer = async (req: AuthenticatedRequest, res: Response): 
       return;
     }
 
+    const activeCompanyId = req.companyId || req.user.companyId;
+
     const customerData = {
       ...validation.data,
       assignedTo: validation.data.assignedTo ? new Types.ObjectId(validation.data.assignedTo) : undefined,
+      companyId: activeCompanyId ? new Types.ObjectId(activeCompanyId) : undefined,
     };
 
     const newCustomer = await Customer.create(customerData);
@@ -62,6 +65,14 @@ export const getCustomers = async (req: AuthenticatedRequest, res: Response): Pr
     const { search, status, assignedTo, limit = '50', page = '1' } = req.query;
 
     const query: any = {};
+
+    // Multi-tenant company isolation filter (unless SUPER_ADMIN)
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) {
+        query.companyId = new Types.ObjectId(activeCompanyId);
+      }
+    }
 
     // 1. Search Query Regex (Name, Email, Company)
     if (search) {
@@ -118,14 +129,20 @@ export const updateCustomer = async (req: AuthenticatedRequest, res: Response): 
 
     const { id } = req.params;
 
+    const query: any = { _id: id };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
     const updateData = { ...req.body };
     if (updateData.assignedTo) {
       updateData.assignedTo = new Types.ObjectId(String(updateData.assignedTo));
     }
 
-    const customer = await Customer.findByIdAndUpdate(id, updateData, { new: true });
+    const customer = await Customer.findOneAndUpdate(query, updateData, { new: true });
     if (!customer) {
-      res.status(404).json({ message: 'Customer not found' });
+      res.status(404).json({ message: 'Customer not found or unauthorized' });
       return;
     }
 
@@ -154,9 +171,15 @@ export const addCustomerNote = async (req: AuthenticatedRequest, res: Response):
       return;
     }
 
-    const customer = await Customer.findById(id);
+    const query: any = { _id: id };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
+    const customer = await Customer.findOne(query);
     if (!customer) {
-      res.status(404).json({ message: 'Customer not found' });
+      res.status(404).json({ message: 'Customer not found or unauthorized' });
       return;
     }
 
@@ -190,9 +213,15 @@ export const deleteCustomer = async (req: AuthenticatedRequest, res: Response): 
 
     const { id } = req.params;
 
-    const customer = await Customer.findByIdAndDelete(id);
+    const query: any = { _id: id };
+    if (req.user.role !== 'SUPER_ADMIN' && req.user.role !== 'SuperAdmin') {
+      const activeCompanyId = req.companyId || req.user.companyId;
+      if (activeCompanyId) query.companyId = new Types.ObjectId(activeCompanyId);
+    }
+
+    const customer = await Customer.findOneAndDelete(query);
     if (!customer) {
-      res.status(404).json({ message: 'Customer not found' });
+      res.status(404).json({ message: 'Customer not found or unauthorized' });
       return;
     }
 
@@ -217,6 +246,8 @@ export const importCustomers = async (req: AuthenticatedRequest, res: Response):
       return;
     }
 
+    const activeCompanyId = req.companyId || req.user.companyId;
+
     const validatedCustomers: any[] = [];
     const errors: string[] = [];
 
@@ -232,7 +263,10 @@ export const importCustomers = async (req: AuthenticatedRequest, res: Response):
           value: parseFloat(c.value || c.Value || '0'),
           tags: Array.isArray(c.tags) ? c.tags : (c.tags ? String(c.tags).split(',').map((t: string) => t.trim()) : []),
         });
-        validatedCustomers.push(parsed);
+        validatedCustomers.push({
+          ...parsed,
+          companyId: activeCompanyId ? new Types.ObjectId(activeCompanyId) : undefined,
+        });
       } catch (err: any) {
         errors.push(`Row ${index + 1}: ${err.message}`);
       }

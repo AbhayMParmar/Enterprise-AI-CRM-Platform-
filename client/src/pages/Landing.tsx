@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import PricingSection from '../components/subscription/PricingSection';
 import {
   Bot,
   BarChart3,
@@ -593,6 +594,9 @@ export const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* ── PRICING SECTION ─────────────────────────────────── */}
+      <PricingSection showTitle={true} />
 
 
       {/* ── FINAL CTA ──────────────────────────────────────── */}

@@ -19,19 +19,24 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   // 1. Start Express app listening IMMEDIATELY so port 5000 is open
-  const server = app.listen(PORT);
+  const server = app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
 
   // 2. Connect to Database
   connectDB()
     .then(async () => {
+      console.log('✅ MongoDB connected successfully.');
       await seedDatabase();
+      console.log('✅ Seed check complete.');
     })
     .catch((err) => {
-      console.error('Database connection process encountered error:', err.message);
+      console.error('❌ Database connection process encountered error:', err.message);
     });
 
   // Graceful shutdown
   const shutdown = async () => {
+    console.log('🛑 Shutdown signal received, closing server...');
     server.close(async () => {
       await redisService.disconnect();
       process.exit(0);
