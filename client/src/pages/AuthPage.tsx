@@ -2290,7 +2290,7 @@ export const AuthPage = ({ initialMode = 'login' }: AuthPageProps) => {
   const location = useLocation();
   const from = (location.state as any)?.from?.pathname || '/dashboard';
 
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your_google_client_id.apps.googleusercontent.com';
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '550705576930-cfe9sgcvvrbrk0qsm12l9eufbohp7skt.apps.googleusercontent.com';
   const isGoogleGsiEnabled = import.meta.env.VITE_ENABLE_GOOGLE_GSI === 'true';
   const isGoogleConfigured = isGoogleGsiEnabled;
 
