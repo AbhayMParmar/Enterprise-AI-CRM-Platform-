@@ -18,7 +18,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@vercel/node": "^3.2.29"
+    "@vercel/node": "^3.2.29",
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
