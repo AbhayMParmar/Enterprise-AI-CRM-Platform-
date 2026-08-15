@@ -573,16 +573,16 @@ export const UserManagement = () => {
       {selectedUserDetail && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full min-h-[400px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X): Modern Gradient Header */}
-            <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
+            {/* Header with Close Icon (X): Clean Dark Theme */}
+            <div className="p-4.5 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
               <div className="flex items-center gap-3">
                 <img
                   src={
                     selectedUserDetail.avatar ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=2563eb&color=fff&size=80`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=18181b&color=fff&size=80`
                   }
                   alt={selectedUserDetail.name}
-                  className="w-10 h-10 rounded-full border border-white/20 object-cover"
+                  className="w-10 h-10 rounded-full border border-slate-700 object-cover"
                 />
                 <div>
                   <h3 className="font-bold text-sm text-white">{selectedUserDetail.name}</h3>

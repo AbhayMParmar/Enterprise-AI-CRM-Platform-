@@ -464,10 +464,10 @@ export const CompanySubscriptionTable = () => {
       {selectedSubDetail && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-lg w-full min-h-[440px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X): Modern Gradient Header */}
-            <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
+            {/* Header with Close Icon (X): Clean Dark Theme */}
+            <div className="p-4.5 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
               <div>
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-0.5">Subscription Overview</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Subscription Overview</span>
                 <h3 className="font-extrabold text-base text-white">{selectedSubDetail.companyName}</h3>
                 <p className="text-xs text-slate-400">Owner: {selectedSubDetail.owner?.name || 'Company Owner'} ({selectedSubDetail.businessEmail})</p>
               </div>
@@ -485,7 +485,7 @@ export const CompanySubscriptionTable = () => {
               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
                 <div>
                   <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Plan Name</span>
-                  <span className="font-extrabold text-blue-600 dark:text-blue-400 text-sm uppercase">
+                  <span className="font-extrabold text-slate-900 dark:text-white text-sm uppercase">
                     {selectedSubDetail.subscription.plan}
                   </span>
                 </div>

@@ -290,10 +290,10 @@ export const UserSubscriptionTable = () => {
       {selectedUserMapping && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full min-h-[400px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X): Modern Gradient Header */}
-            <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
+            {/* Header with Close Icon (X): Clean Dark Theme */}
+            <div className="p-4.5 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
               <div>
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-0.5">User &amp; Plan Mapping</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">User &amp; Plan Mapping</span>
                 <h3 className="font-extrabold text-base text-white">{selectedUserMapping.name}</h3>
                 <p className="text-xs text-slate-400">{selectedUserMapping.email}</p>
               </div>
@@ -317,7 +317,7 @@ export const UserSubscriptionTable = () => {
                 </div>
                 <div>
                   <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Inherited Plan</span>
-                  <span className="font-extrabold text-blue-600 dark:text-blue-400 text-xs block mt-1 uppercase">
+                  <span className="font-extrabold text-slate-900 dark:text-white text-xs block mt-1 uppercase">
                     {selectedUserMapping.inheritedSubscription?.plan || 'Free'}
                   </span>
                 </div>

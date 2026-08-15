@@ -576,10 +576,10 @@ export const SuperAdminDashboard = () => {
       {selectedCompanyId && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
           <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[90vh] min-h-[480px] shadow-2xl flex flex-col overflow-hidden relative">
-            {/* Header: Unique Modern iOS Gradient Header */}
-            <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between border-b border-white/10 relative overflow-hidden">
+            {/* Header: Clean Dark Theme */}
+            <div className="p-4 sm:p-6 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800 relative overflow-hidden">
               <div>
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-0.5">Company Workspace Inspection</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Company Workspace Inspection</span>
                 <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">{companyDetail?.company?.companyName || 'Company Inspection'}</h2>
                 <p className="text-xs text-slate-300 mt-0.5">
                   ID: {selectedCompanyId} • Status: <strong className="text-emerald-400 uppercase">{companyDetail?.company?.status}</strong>
