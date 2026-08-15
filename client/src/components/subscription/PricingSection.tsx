@@ -232,13 +232,25 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         order_id: order?.id || orderRes.data.orderId,
         handler: async function (response: any) {
           try {
-            const verifyRes = await api.post('/payments/verify-payment', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              plan: planId,
-            });
-            if (verifyRes.data.success) {
+            let verifyRes;
+            try {
+              verifyRes = await api.post('/payments/verify', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: planId,
+              });
+            } catch (endpointErr) {
+              // Fallback to /verify-payment endpoint if /verify returns 404
+              verifyRes = await api.post('/payments/verify-payment', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                plan: planId,
+              });
+            }
+
+            if (verifyRes.data && verifyRes.data.success) {
               success('🎉 Subscription upgraded successfully! Unlocking your new limits.');
               if (user && accessToken) {
                 login(accessToken, {
@@ -255,10 +267,11 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                 navigate('/payment-success');
               }, 1200);
             } else {
-              error('Payment verification failed on server.');
+              error(verifyRes.data?.message || 'Payment verification failed on server. Plan was not activated.');
             }
           } catch (err: any) {
-            error(err.response?.data?.message || 'Payment verification failed.');
+            console.error('[PAYMENT VERIFICATION ERROR]:', err);
+            error(err.response?.data?.message || 'Payment verification failed. No plan was activated.');
           } finally {
             setLoadingPlan(null);
           }
