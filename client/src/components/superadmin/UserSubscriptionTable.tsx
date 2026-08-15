@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   Search,
@@ -45,8 +45,10 @@ export const UserSubscriptionTable = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedUserMapping, setSelectedUserMapping] = useState<any | null>(null);
 
-  const fetchUserSubscriptionOverview = async () => {
-    setIsLoading(true);
+  const fetchUserSubscriptionOverview = async (showFullLoading = false) => {
+    if (showFullLoading || users.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await api.get('/companies/user-subscriptions', {
         params: { role: roleFilter, search: searchQuery },
@@ -59,8 +61,25 @@ export const UserSubscriptionTable = () => {
     }
   };
 
+  // Instant In-Memory Search Filtering (0ms Latency, Zero Flickering)
+  const filteredUserMappings = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+    const q = searchQuery.toLowerCase();
+    return users.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        u.companyName?.toLowerCase().includes(q) ||
+        u.role?.toLowerCase().includes(q) ||
+        u.inheritedSubscription?.plan?.toLowerCase().includes(q)
+    );
+  }, [users, searchQuery]);
+
   useEffect(() => {
-    fetchUserSubscriptionOverview();
+    const timer = setTimeout(() => {
+      fetchUserSubscriptionOverview(false);
+    }, 250);
+    return () => clearTimeout(timer);
   }, [roleFilter, searchQuery]);
 
   const handleDeleteUser = async (userId: string, userName: string) => {
@@ -155,14 +174,14 @@ export const UserSubscriptionTable = () => {
                     Loading user subscription mappings...
                   </td>
                 </tr>
-              ) : users.length === 0 ? (
+              ) : filteredUserMappings.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-slate-400 dark:text-zinc-500 italic">
                     No users match the search filter.
                   </td>
                 </tr>
               ) : (
-                users.map((usr) => {
+                filteredUserMappings.map((usr) => {
                   const sub = usr.inheritedSubscription;
                   const isSuperAdmin = usr.role === 'SUPER_ADMIN' || usr.role === 'SuperAdmin';
                   return (
@@ -270,11 +289,11 @@ export const UserSubscriptionTable = () => {
       {/* Mobile User Mapping Detail Popup Modal (Mobile Devices Only) */}
       {selectedUserMapping && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X) */}
-            <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full min-h-[400px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
+            {/* Header with Close Icon (X): Modern Gradient Header */}
+            <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
               <div>
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">User &amp; Plan Mapping</span>
+                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-0.5">User &amp; Plan Mapping</span>
                 <h3 className="font-extrabold text-base text-white">{selectedUserMapping.name}</h3>
                 <p className="text-xs text-slate-400">{selectedUserMapping.email}</p>
               </div>

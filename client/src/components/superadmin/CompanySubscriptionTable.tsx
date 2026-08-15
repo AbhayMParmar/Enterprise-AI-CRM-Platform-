@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   CreditCard,
   Search,
@@ -76,8 +76,10 @@ export const CompanySubscriptionTable = () => {
   const [newAmount, setNewAmount] = useState(2499);
   const [isSaving, setIsSaving] = useState(false);
 
-  const fetchSubscriptions = async () => {
-    setIsLoading(true);
+  const fetchSubscriptions = async (showFullLoading = false) => {
+    if (showFullLoading || subscriptions.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await api.get('/companies/subscriptions', {
         params: { status: statusFilter, search: searchQuery },
@@ -91,8 +93,25 @@ export const CompanySubscriptionTable = () => {
     }
   };
 
+  // Instant In-Memory Search Filtering (0ms Latency, Zero Flickering)
+  const filteredSubscriptions = useMemo(() => {
+    if (!searchQuery.trim()) return subscriptions;
+    const q = searchQuery.toLowerCase();
+    return subscriptions.filter(
+      (comp) =>
+        comp.companyName?.toLowerCase().includes(q) ||
+        comp.businessEmail?.toLowerCase().includes(q) ||
+        comp.owner?.name?.toLowerCase().includes(q) ||
+        comp.owner?.email?.toLowerCase().includes(q) ||
+        comp.subscription?.plan?.toLowerCase().includes(q)
+    );
+  }, [subscriptions, searchQuery]);
+
   useEffect(() => {
-    fetchSubscriptions();
+    const timer = setTimeout(() => {
+      fetchSubscriptions(false);
+    }, 250);
+    return () => clearTimeout(timer);
   }, [statusFilter, searchQuery]);
 
   const handleOpenEdit = (comp: CompanySubscriptionItem) => {
@@ -258,14 +277,14 @@ export const CompanySubscriptionTable = () => {
                       Loading company subscriptions...
                     </td>
                   </tr>
-                ) : subscriptions.length === 0 ? (
+                ) : filteredSubscriptions.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="p-8 text-center text-slate-400 dark:text-zinc-500 italic">
                       No subscriptions match the filter.
                     </td>
                   </tr>
                 ) : (
-                  subscriptions.map((comp) => {
+                  filteredSubscriptions.map((comp) => {
                     const sub = comp.subscription;
                     return (
                       <tr
@@ -444,11 +463,11 @@ export const CompanySubscriptionTable = () => {
       {/* Mobile Subscription Detail Popup Modal (Mobile Devices Only) */}
       {selectedSubDetail && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-lg w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X) */}
-            <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-lg w-full min-h-[440px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
+            {/* Header with Close Icon (X): Modern Gradient Header */}
+            <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
               <div>
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Company Subscription Details</span>
+                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-0.5">Subscription Overview</span>
                 <h3 className="font-extrabold text-base text-white">{selectedSubDetail.companyName}</h3>
                 <p className="text-xs text-slate-400">Owner: {selectedSubDetail.owner?.name || 'Company Owner'} ({selectedSubDetail.businessEmail})</p>
               </div>

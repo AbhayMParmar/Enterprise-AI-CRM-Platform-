@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   ShieldCheck,
@@ -94,14 +94,16 @@ export const SuperAdminDashboard = () => {
   const [rejectingCompanyId, setRejectingCompanyId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>('');
 
-  const fetchCompanyData = async () => {
-    setIsLoading(true);
+  const fetchCompanyData = async (showFullLoading = false) => {
+    if (showFullLoading || companies.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await api.get('/companies', {
         params: { status: statusFilter, search: searchQuery },
       });
       setStats(res.data.stats);
-      setCompanies(res.data.companies);
+      setCompanies(res.data.companies || []);
     } catch (err: any) {
       error('Failed to load company management data');
     } finally {
@@ -109,9 +111,26 @@ export const SuperAdminDashboard = () => {
     }
   };
 
+  // Instant In-Memory Search Filtering (0ms Latency, Zero Flickering)
+  const filteredCompanies = useMemo(() => {
+    if (!searchQuery.trim()) return companies;
+    const q = searchQuery.toLowerCase();
+    return companies.filter(
+      (c) =>
+        c.companyName?.toLowerCase().includes(q) ||
+        c.businessEmail?.toLowerCase().includes(q) ||
+        c.owner?.name?.toLowerCase().includes(q) ||
+        c.owner?.email?.toLowerCase().includes(q) ||
+        c.industry?.toLowerCase().includes(q)
+    );
+  }, [companies, searchQuery]);
+
   useEffect(() => {
     if (activeMainTab === 'companies') {
-      fetchCompanyData();
+      const timer = setTimeout(() => {
+        fetchCompanyData(false);
+      }, 250);
+      return () => clearTimeout(timer);
     }
   }, [statusFilter, searchQuery, activeMainTab]);
 
@@ -411,14 +430,14 @@ export const SuperAdminDashboard = () => {
                           Loading company directory...
                         </td>
                       </tr>
-                    ) : companies.length === 0 ? (
+                    ) : filteredCompanies.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-slate-400 dark:text-zinc-500 italic">
                           No companies match the current filter.
                         </td>
                       </tr>
                     ) : (
-                      companies.map((comp) => (
+                      filteredCompanies.map((comp) => (
                         <tr
                           key={comp.id}
                           onClick={() => {
@@ -555,21 +574,23 @@ export const SuperAdminDashboard = () => {
 
       {/* Company Detail Inspection Modal */}
       {selectedCompanyId && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
-            <div className="p-6 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[90vh] min-h-[480px] shadow-2xl flex flex-col overflow-hidden relative">
+            {/* Header: Unique Modern iOS Gradient Header */}
+            <div className="p-4 sm:p-6 bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex items-center justify-between border-b border-white/10 relative overflow-hidden">
               <div>
-                <h2 className="text-xl font-bold">{companyDetail?.company?.companyName || 'Company Inspection'}</h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Company ID: {selectedCompanyId} • Status: <strong className="text-emerald-400">{companyDetail?.company?.status}</strong>
+                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-0.5">Company Workspace Inspection</span>
+                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">{companyDetail?.company?.companyName || 'Company Inspection'}</h2>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  ID: {selectedCompanyId} • Status: <strong className="text-emerald-400 uppercase">{companyDetail?.company?.status}</strong>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedCompanyId(null)}
-                className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
               >
-                <XCircle size={20} />
+                <XCircle size={22} />
               </button>
             </div>
 
@@ -598,7 +619,7 @@ export const SuperAdminDashboard = () => {
               ))}
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs min-h-[340px] flex-1">
               {isDetailLoading ? (
                 <div className="p-12 text-center text-slate-400 dark:text-zinc-500">
                   <RefreshCw className="w-8 h-8 animate-spin mx-auto text-blue-600 dark:text-blue-400 mb-2" />

@@ -65,8 +65,10 @@ export const UserManagement = () => {
   const [resetPasswordText, setResetPasswordText] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
-  const fetchUsers = async () => {
-    setIsLoading(true);
+  const fetchUsers = async (showFullLoading = false) => {
+    if (showFullLoading || users.length === 0) {
+      setIsLoading(true);
+    }
     try {
       const res = await api.get('/users', {
         params: {
@@ -82,13 +84,28 @@ export const UserManagement = () => {
     }
   };
 
+  // Instant In-Memory Search Filtering (0ms Latency, Zero Flickering)
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+    const q = searchQuery.toLowerCase();
+    return users.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q) ||
+        u.role?.toLowerCase().includes(q)
+    );
+  }, [users, searchQuery]);
+
   useEffect(() => {
-    fetchUsers();
-  }, [selectedRoleFilter]);
+    const timer = setTimeout(() => {
+      fetchUsers(false);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [selectedRoleFilter, searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchUsers();
+    fetchUsers(false);
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -321,7 +338,7 @@ export const UserManagement = () => {
               <RefreshCw className="w-4 h-4 animate-spin text-brand-primary" />
               Loading user registry...
             </div>
-          ) : users.length === 0 ? (
+          ) : filteredUsers.length === 0 ? (
             <div className="p-8 text-center text-xs text-slate-400 dark:text-zinc-500 italic">No users found matching current filters.</div>
           ) : (
             <table className="w-full min-w-[700px] text-left text-xs border-collapse">
@@ -333,12 +350,12 @@ export const UserManagement = () => {
                         type="checkbox"
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setSelectedUserIds(users.map((u) => u._id));
+                            setSelectedUserIds(filteredUsers.map((u) => u._id));
                           } else {
                             setSelectedUserIds([]);
                           }
                         }}
-                        checked={selectedUserIds.length === users.length && users.length > 0}
+                        checked={selectedUserIds.length === filteredUsers.length && filteredUsers.length > 0}
                         className="rounded text-brand-primary"
                       />
                     </th>
@@ -351,7 +368,7 @@ export const UserManagement = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800/80">
-                {users.map((u) => {
+                {filteredUsers.map((u) => {
                   const avatarSrc =
                     u.avatar ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&background=2563eb&color=fff&size=80`;
@@ -538,9 +555,9 @@ export const UserManagement = () => {
       {/* Mobile User Detail Popup Modal (Mobile Devices Only) */}
       {selectedUserDetail && (
         <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X) */}
-            <div className="p-4 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full min-h-[400px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
+            {/* Header with Close Icon (X): Modern Gradient Header */}
+            <div className="p-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between border-b border-white/10">
               <div className="flex items-center gap-3">
                 <img
                   src={
