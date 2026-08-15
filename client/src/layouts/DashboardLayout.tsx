@@ -110,7 +110,9 @@ export const DashboardLayout = () => {
           key={item.path}
           to={item.path}
           onClick={onItemClick}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all group relative cursor-pointer ${
+          className={`flex items-center gap-3 py-2.5 rounded-xl text-xs font-bold transition-all group relative cursor-pointer ${
+            isSidebarCollapsed ? 'justify-center px-0' : 'px-3'
+          } ${
             isActive
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 dark:bg-blue-600 dark:text-white'
               : 'text-slate-600 dark:text-zinc-400 hover:bg-slate-100/90 dark:hover:bg-zinc-800/80 hover:text-blue-600 dark:hover:text-white'
@@ -152,21 +154,24 @@ export const DashboardLayout = () => {
         </button>
 
         {/* Nav Links */}
-        <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 px-2.5 py-4 flex flex-col gap-1 overflow-y-auto scrollbar-hide">
           {renderNavLinks()}
         </nav>
 
         {/* User Footer */}
-        <div className="p-3 border-t border-slate-100 dark:border-zinc-800 flex flex-col gap-2 flex-shrink-0">
+        <div className={`p-2.5 border-t border-slate-100 dark:border-zinc-800 flex flex-col gap-2 flex-shrink-0 ${isSidebarCollapsed ? 'items-center' : ''}`}>
           <Link
             to="/profile"
-            className="flex items-center gap-3 overflow-hidden p-1.5 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80 rounded-xl transition-all cursor-pointer"
+            className={`flex items-center gap-3 overflow-hidden rounded-xl transition-all cursor-pointer ${
+              isSidebarCollapsed ? 'justify-center p-1 w-full' : 'p-1.5 hover:bg-slate-100/80 dark:hover:bg-zinc-800/80'
+            }`}
+            title={isSidebarCollapsed ? user?.name : undefined}
           >
             <img
               src={avatarSrc}
               alt={user?.name || 'User avatar'}
               referrerPolicy="no-referrer"
-              className="w-9 h-9 rounded-full border border-slate-200 dark:border-zinc-700 object-cover flex-shrink-0"
+              className="w-9 h-9 min-w-[36px] min-h-[36px] aspect-square rounded-full border border-slate-200 dark:border-zinc-700 object-cover flex-shrink-0"
             />
             {!isSidebarCollapsed && (
               <div className="flex flex-col min-w-0">
@@ -182,7 +187,10 @@ export const DashboardLayout = () => {
           </Link>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 transition-colors w-full cursor-pointer"
+            title={isSidebarCollapsed ? 'Sign Out' : undefined}
+            className={`flex items-center gap-2.5 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 transition-colors w-full cursor-pointer ${
+              isSidebarCollapsed ? 'justify-center px-0' : 'px-3'
+            }`}
           >
             <LogOut className="w-4 h-4 flex-shrink-0" />
             {!isSidebarCollapsed && <span>Sign Out</span>}
