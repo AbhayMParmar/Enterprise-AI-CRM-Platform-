@@ -78,6 +78,8 @@ export const Deals = () => {
         probability: d.probability,
         customer: d.customer ? { id: d.customer._id, name: d.customer.name, company: d.customer.company, email: d.customer.email } : undefined,
         assignedTo: d.assignedTo ? { id: d.assignedTo._id, name: d.assignedTo.name, avatar: d.assignedTo.avatar, role: d.assignedTo.role } : undefined,
+        expectedCloseDate: d.expectedCloseDate,
+        createdAt: d.createdAt,
       }));
 
       setDeals(mapped);
@@ -599,7 +601,7 @@ export const Deals = () => {
                 <div className="flex flex-col pt-2.5 border-t border-slate-200/60 dark:border-zinc-800/60">
                   <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Opportunity Created</span>
                   <span className="font-bold text-slate-900 dark:text-zinc-100 text-xs mt-0.5">
-                    {new Date(selectedDeal.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {selectedDeal.createdAt ? new Date(selectedDeal.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recently Added'}
                   </span>
                 </div>
               </div>

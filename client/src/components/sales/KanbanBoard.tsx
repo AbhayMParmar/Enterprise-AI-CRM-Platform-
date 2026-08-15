@@ -12,6 +12,8 @@ export interface DealItem {
   probability: number;
   customer?: { id: string; name: string; company?: string; email: string };
   assignedTo?: { id: string; name: string; avatar?: string; role: string };
+  expectedCloseDate?: string;
+  createdAt?: string;
 }
 
 interface KanbanBoardProps {
