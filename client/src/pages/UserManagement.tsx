@@ -633,7 +633,7 @@ export const UserManagement = () => {
                   Close
                 </Button>
                 {currentUser?.role === 'SuperAdmin' && selectedUserDetail.role !== 'SuperAdmin' && selectedUserDetail.role !== 'SUPER_ADMIN' && (
-                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail._id); setSelectedUserDetail(null); }}>
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }}>
                     Delete Account
                   </Button>
                 )}
