@@ -546,7 +546,7 @@ export const refreshToken = async (req: Request, res: Response): Promise<void> =
     // Check account status
     if (user.accountStatus === 'REJECTED' || user.accountStatus === 'SUSPENDED') {
       TokenService.clearRefreshTokenCookie(res);
-      res.status(403).json({
+      res.status(200).json({
         success: false,
         authenticated: false,
         message: 'Your account access has been suspended or rejected.',

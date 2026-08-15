@@ -267,9 +267,12 @@ export const DashboardLayout = () => {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-2">
-              <div className="md:hidden">
-                <Logo size="sm" showText={false} />
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-xl bg-blue-50 dark:bg-zinc-800 border border-blue-200/60 dark:border-zinc-700 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-2xs">
+                {React.createElement(
+                  navItems.find(item => item.path === location.pathname)?.icon || LayoutDashboard,
+                  { className: 'w-4 h-4' }
+                )}
               </div>
               <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
                 {getPageTitle()}

@@ -8,36 +8,15 @@ interface LogoProps {
 }
 
 export const LogoIcon: React.FC<{ className?: string }> = ({ className = 'w-7 h-7' }) => (
-  <div className={`relative ${className} shrink-0 rounded-xl overflow-hidden shadow-md transition-transform duration-200 hover:scale-105 select-none`}>
-    <svg viewBox="0 0 512 512" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#1D4ED8" />
-          <stop offset="50%" stopColor="#2563EB" />
-          <stop offset="100%" stopColor="#4F46E5" />
-        </linearGradient>
-        <linearGradient id="sparkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="100%" stopColor="#93C5FD" />
-        </linearGradient>
-        <linearGradient id="glowRing" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#60A5FA" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#A5B4FC" stopOpacity="0.2" />
-        </linearGradient>
-      </defs>
-      {/* Sleek Gradient Rounded Squircle */}
-      <rect width="512" height="512" rx="140" fill="url(#logoBgGrad)" />
-      <rect x="12" y="12" width="488" height="488" rx="128" fill="none" stroke="url(#glowRing)" strokeWidth="8" />
-
-      {/* Modern Professional AI Crown & Neural Diamond Icon */}
-      <path d="M256 96L368 176V336L256 416L144 336V176L256 96Z" fill="#FFFFFF" fillOpacity="0.15" stroke="#FFFFFF" strokeWidth="12" strokeLinejoin="round" />
-      <path d="M256 140L336 200V312L256 372L176 312V200L256 140Z" fill="url(#sparkGrad)" fillOpacity="0.95" />
-      <path d="M256 180L296 220V292L256 332L216 292V220L256 180Z" fill="url(#logoBgGrad)" />
-      
-      {/* Central Glowing AI Spark */}
-      <circle cx="256" cy="256" r="24" fill="#FFFFFF" />
-      <circle cx="256" cy="256" r="14" fill="#2563EB" />
-      <circle cx="256" cy="256" r="6" fill="#FFFFFF" />
+  <div className={`relative ${className} shrink-0 rounded-xl overflow-hidden shadow-md transition-transform duration-200 hover:scale-105 select-none bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-700 flex items-center justify-center p-1.5 border border-blue-400/40`}>
+    <svg viewBox="0 0 24 24" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* High-Contrast Bold AI Star / Spark Emblem */}
+      <path 
+        d="M12 2L14.8 8.6L22 12L14.8 15.4L12 22L9.2 15.4L2 12L9.2 8.6L12 2Z" 
+        fill="#FFFFFF" 
+      />
+      <circle cx="12" cy="12" r="3.5" fill="#1D4ED8" />
+      <circle cx="12" cy="12" r="1.5" fill="#FFFFFF" />
     </svg>
   </div>
 );
