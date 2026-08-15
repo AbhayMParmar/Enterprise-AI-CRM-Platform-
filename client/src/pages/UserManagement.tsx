@@ -13,6 +13,7 @@ import {
   XCircle,
   AlertTriangle,
   ChevronDown,
+  X,
 } from 'lucide-react';
 import api from '../services/api';
 import useAuthStore from '../store/authStore';

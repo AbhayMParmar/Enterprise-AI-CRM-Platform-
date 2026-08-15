@@ -10,6 +10,7 @@ import {
   Sparkles,
   UserCheck,
   Trash2,
+  X,
 } from 'lucide-react';
 import api from '../../services/api';
 import { Card, CardHeader, CardBody } from '../ui/Card';
