@@ -16,6 +16,8 @@ import {
   Shield,
   Lock,
   ArrowRight,
+  Paperclip,
+  X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -28,11 +30,14 @@ import useAuthStore from '../store/authStore';
 type Tab = 'copilot' | 'email' | 'summarizer';
 type Msg = { role: 'user' | 'assistant'; content: string };
 
-/* ─── Quick‑prompt chips ──────────────────────────────────────────────────*/
+/* ─── Quick‑prompt chips (6 Small Content Boxes - Fully Responsive) ─────────*/
 const QUICK_PROMPTS = [
   { icon: '💡', label: 'Price Objections', text: 'How should I handle price objections during contract negotiation?' },
   { icon: '📋', label: 'BANT Checklist',   text: 'Give me a BANT lead qualification framework checklist for tech sales.' },
   { icon: '🚀', label: 'Close Strategy',   text: 'What are the top 3 closing techniques for enterprise B2B deals?' },
+  { icon: '🎯', label: 'Cold Pitch',       text: 'Draft a 30-second cold call pitch for an AI CRM solution.' },
+  { icon: '📊', label: 'Pipeline Review',  text: 'How can I accelerate slow-moving deals in my Q3 pipeline?' },
+  { icon: '🤝', label: 'Follow-up Cadence', text: 'What is the best email follow-up cadence for uncommunicative leads?' },
 ];
 
 /* ─── Tab metadata ────────────────────────────────────────────────────────*/
@@ -59,6 +64,47 @@ export const AiAssistant = () => {
   const [isCopilotLoading, setCopilotLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  /* File Attachment State */
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachedFile, setAttachedFile] = useState<{ name: string; content?: string; size: string } | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const sizeKb = (file.size / 1024).toFixed(1) + ' KB';
+    const reader = new FileReader();
+
+    if (
+      file.type.startsWith('text/') ||
+      file.name.endsWith('.json') ||
+      file.name.endsWith('.csv') ||
+      file.name.endsWith('.md') ||
+      file.name.endsWith('.txt')
+    ) {
+      reader.onload = (evt) => {
+        setAttachedFile({
+          name: file.name,
+          content: evt.target?.result as string,
+          size: sizeKb,
+        });
+        success(`Attached ${file.name}`);
+      };
+      reader.readAsText(file);
+    } else {
+      setAttachedFile({
+        name: file.name,
+        size: sizeKb,
+      });
+      success(`Attached ${file.name}`);
+    }
+  };
+
+  const removeAttachedFile = () => {
+    setAttachedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isCopilotLoading]);
@@ -81,13 +127,27 @@ export const AiAssistant = () => {
   /* ── Handlers ───────────────────────────────────────────────────────── */
   const handleSendCopilot = async (e?: React.FormEvent, customText?: string) => {
     if (e) e.preventDefault();
-    const text = customText || inputPrompt;
-    if (!text.trim()) return;
-    setMessages(p => [...p, { role: 'user', content: text }]);
+    const baseText = customText || inputPrompt;
+    if (!baseText.trim() && !attachedFile) return;
+
+    let promptToSend = baseText;
+    let displayUserMessage = baseText;
+
+    if (attachedFile) {
+      displayUserMessage = baseText
+        ? `${baseText}\n\n📎 [Attachment: ${attachedFile.name}]`
+        : `📎 [Attachment: ${attachedFile.name}]`;
+      promptToSend = `${baseText}\n\n[Attached File: ${attachedFile.name}${attachedFile.content ? `\nFile Content:\n${attachedFile.content}` : ''}]`;
+    }
+
+    setMessages(p => [...p, { role: 'user', content: displayUserMessage }]);
     if (!customText) setInputPrompt('');
+    setAttachedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
     setCopilotLoading(true);
     try {
-      const res = await api.post('/ai/copilot-chat', { prompt: text, history: messages.slice(-4) });
+      const res = await api.post('/ai/copilot-chat', { prompt: promptToSend, history: messages.slice(-4) });
       setMessages(p => [...p, { role: 'assistant', content: res.data.reply }]);
     } catch {
       error('Copilot request failed.');
@@ -326,11 +386,11 @@ export const AiAssistant = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Quick prompts + Input */}
+              {/* Quick prompts + Attachment + Input */}
               <div className="flex-shrink-0 px-3 sm:px-4 pt-2 pb-2.5 sm:pb-3 flex flex-col gap-2 sm:gap-2.5 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/90 dark:bg-[#18181B]">
-                {/* Chips */}
-                <div className="flex items-center gap-1.5 overflow-x-auto">
-                  <span className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 font-semibold whitespace-nowrap flex-shrink-0 mr-0.5">
+                {/* 6 Small Content Boxes / Quick Prompt Chips (Fully Responsive Horizontal Scroll Bar) */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 min-w-0 flex-nowrap touch-pan-x select-none">
+                  <span className="text-[10px] sm:text-xs text-slate-400 dark:text-zinc-400 font-bold whitespace-nowrap flex-shrink-0 mr-0.5 uppercase tracking-wider">
                     Try:
                   </span>
                   {QUICK_PROMPTS.map((q) => (
@@ -338,7 +398,7 @@ export const AiAssistant = () => {
                       key={q.label}
                       type="button"
                       onClick={() => handleSendCopilot(undefined, q.text)}
-                      className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold whitespace-nowrap flex-shrink-0 transition-all duration-150 active:scale-95 bg-blue-50 dark:bg-zinc-800/80 hover:bg-blue-100 dark:hover:bg-zinc-700 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-zinc-700 cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold whitespace-nowrap flex-shrink-0 transition-all duration-150 active:scale-95 bg-blue-50/90 dark:bg-zinc-800/90 hover:bg-blue-100 dark:hover:bg-zinc-700 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-zinc-700/80 shadow-2xs cursor-pointer"
                     >
                       <span>{q.icon}</span>
                       <span>{q.label}</span>
@@ -346,18 +406,56 @@ export const AiAssistant = () => {
                   ))}
                 </div>
 
-                {/* Input row */}
+                {/* Attached File Preview Badge (If attached) */}
+                {attachedFile && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-100/80 dark:bg-blue-950/60 border border-blue-300 dark:border-blue-800 rounded-xl text-xs text-blue-800 dark:text-blue-300 self-start animate-in fade-in duration-150">
+                    <Paperclip className="w-3.5 h-3.5 flex-shrink-0 text-blue-600 dark:text-blue-400" />
+                    <span className="font-bold truncate max-w-[180px] sm:max-w-[280px]">{attachedFile.name}</span>
+                    <span className="text-[10px] text-blue-500 font-mono">({attachedFile.size})</span>
+                    <button
+                      type="button"
+                      onClick={removeAttachedFile}
+                      className="ml-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 p-0.5 rounded-full transition-colors cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept=".txt,.pdf,.csv,.doc,.docx,.json,.md,.png,.jpg,.jpeg"
+                  className="hidden"
+                />
+
+                {/* Input row with Attachment Button */}
                 <form onSubmit={handleSendCopilot} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach document or file to AI chat"
+                    className={`flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                      attachedFile
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-white dark:bg-zinc-800 text-slate-500 hover:text-blue-600 dark:text-zinc-400 dark:hover:text-white border border-slate-200 dark:border-zinc-700 hover:border-blue-300'
+                    }`}
+                  >
+                    <Paperclip className="w-4 h-4" />
+                  </button>
+
                   <input
                     type="text"
-                    placeholder="Ask about pipeline strategy, objections, closing tactics…"
+                    placeholder="Ask AI Sales Copilot or attach a file..."
                     value={inputPrompt}
                     onChange={e => setInputPrompt(e.target.value)}
                     className="flex-1 min-w-0 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-all"
                   />
                   <button
                     type="submit"
-                    disabled={isCopilotLoading || !inputPrompt.trim()}
+                    disabled={isCopilotLoading || (!inputPrompt.trim() && !attachedFile)}
                     className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md cursor-pointer"
                   >
                     <Send className="w-4 h-4 text-white" />
