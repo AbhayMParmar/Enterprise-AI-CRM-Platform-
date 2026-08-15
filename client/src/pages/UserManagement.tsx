@@ -569,77 +569,83 @@ export const UserManagement = () => {
         </div>
       )}
 
-      {/* Mobile User Detail Popup Modal (Mobile Devices Only) */}
+      {/* Mobile User Detail Popup Modal (Mobile Devices Only — Premium iOS Card Sheet) */}
       {selectedUserDetail && (
-        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] overflow-y-auto">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-md w-full min-h-[400px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X): Clean Dark Theme */}
-            <div className="p-4.5 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
-              <div className="flex items-center gap-3">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-4 z-[9999]">
+          <div className="bg-white dark:bg-[#121212] rounded-3xl max-w-md w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col animate-in slide-in-from-bottom-5 duration-200">
+            {/* Top iOS Sheet Drag Bar */}
+            <div className="w-10 h-1 bg-slate-200 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1" />
+
+            {/* User Profile Header (Seamless Dark/White Theme - No Navy Bar) */}
+            <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80">
+              <div className="flex items-center gap-3.5">
                 <img
                   src={
                     selectedUserDetail.avatar ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=18181b&color=fff&size=80`
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUserDetail.name)}&background=09090b&color=fff&size=96`
                   }
                   alt={selectedUserDetail.name}
-                  className="w-10 h-10 rounded-full border border-slate-700 object-cover"
+                  className="w-12 h-12 rounded-full ring-2 ring-slate-100 dark:ring-zinc-800 object-cover"
                 />
                 <div>
-                  <h3 className="font-bold text-sm text-white">{selectedUserDetail.name}</h3>
-                  <p className="text-xs text-slate-400">{selectedUserDetail.email}</p>
+                  <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-tight">{selectedUserDetail.name}</h3>
+                  <p className="text-xs font-medium text-slate-500 dark:text-zinc-400 mt-0.5">{selectedUserDetail.email}</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedUserDetail(null)}
-                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-5 space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+            <div className="p-4 sm:p-5 space-y-4 text-xs">
+              {/* Role & Status Pill Grid */}
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80">
                 <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Assigned Role</span>
-                  <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getRoleBadgeStyle(selectedUserDetail.role)}`}>
+                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Assigned Role</span>
+                  <span className={`inline-block mt-1.5 px-3 py-1 rounded-full text-[11px] font-bold border ${getRoleBadgeStyle(selectedUserDetail.role)}`}>
                     {getRoleLabel(selectedUserDetail.role)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Verification Status</span>
-                  <span className={`inline-block mt-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    selectedUserDetail.isVerified ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Status</span>
+                  <span className={`inline-block mt-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
+                    selectedUserDetail.isVerified ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300'
                   }`}>
-                    {selectedUserDetail.isVerified ? 'Verified Active' : 'Unverified / Disabled'}
+                    {selectedUserDetail.isVerified ? 'Active Verified' : 'Suspended'}
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">User ID:</span>
-                  <span className="font-mono text-slate-800 dark:text-zinc-200">{selectedUserDetail._id}</span>
+              {/* Data Properties */}
+              <div className="space-y-2.5 bg-slate-50/50 dark:bg-zinc-900/40 p-3.5 rounded-2xl border border-slate-100 dark:border-zinc-800/60">
+                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
+                  <span className="text-slate-500 dark:text-zinc-400 font-medium">User ID:</span>
+                  <span className="font-mono font-medium text-slate-800 dark:text-zinc-200 text-[11px]">{selectedUserDetail._id}</span>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">Company ID:</span>
-                  <span className="font-mono text-slate-800 dark:text-zinc-200">{selectedUserDetail.companyId || 'N/A'}</span>
+                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
+                  <span className="text-slate-500 dark:text-zinc-400 font-medium">Company ID:</span>
+                  <span className="font-mono font-medium text-slate-800 dark:text-zinc-200 text-[11px]">{selectedUserDetail.companyId || 'N/A'}</span>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">Joined Date:</span>
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-500 dark:text-zinc-400 font-medium">Joined Date:</span>
                   <span className="font-semibold text-slate-800 dark:text-zinc-200">
                     {new Date(selectedUserDetail.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => setSelectedUserDetail(null)}>
+              {/* Modal Footer Buttons */}
+              <div className="pt-2 flex justify-end gap-2.5">
+                <Button variant="outline" size="sm" onClick={() => setSelectedUserDetail(null)} className="rounded-xl px-4">
                   Close
                 </Button>
                 {currentUser?.role === 'SuperAdmin' && selectedUserDetail.role !== 'SuperAdmin' && selectedUserDetail.role !== 'SUPER_ADMIN' && (
-                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }}>
+                  <Button variant="danger" size="sm" onClick={() => { handleDeleteUser(selectedUserDetail); setSelectedUserDetail(null); }} className="rounded-xl px-4">
                     Delete Account
                   </Button>
                 )}

@@ -460,79 +460,76 @@ export const CompanySubscriptionTable = () => {
         </div>
       )}
 
-      {/* Mobile Subscription Detail Popup Modal (Mobile Devices Only) */}
+      {/* Mobile Subscription Detail Popup Modal (Mobile Devices Only — Premium iOS Card Sheet) */}
       {selectedSubDetail && (
-        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl max-w-lg w-full min-h-[440px] border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col justify-between animate-in fade-in zoom-in duration-200">
-            {/* Header with Close Icon (X): Clean Dark Theme */}
-            <div className="p-4.5 bg-slate-900 dark:bg-zinc-900 text-white flex items-center justify-between border-b border-slate-800 dark:border-zinc-800">
+        <div className="md:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-4 z-[9999]">
+          <div className="bg-white dark:bg-[#121212] rounded-3xl max-w-lg w-full border border-slate-200 dark:border-zinc-800 shadow-2xl overflow-hidden relative flex flex-col animate-in slide-in-from-bottom-5 duration-200">
+            {/* Top iOS Sheet Drag Bar */}
+            <div className="w-10 h-1 bg-slate-200 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1" />
+
+            {/* Seamless Header */}
+            <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3 border-b border-slate-100 dark:border-zinc-800/80">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Subscription Overview</span>
-                <h3 className="font-extrabold text-base text-white">{selectedSubDetail.companyName}</h3>
-                <p className="text-xs text-slate-400">Owner: {selectedSubDetail.owner?.name || 'Company Owner'} ({selectedSubDetail.businessEmail})</p>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest block mb-0.5">Subscription Overview</span>
+                <h3 className="font-extrabold text-lg text-slate-900 dark:text-white leading-tight">{selectedSubDetail.companyName}</h3>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Owner: {selectedSubDetail.owner?.name || 'Company Owner'} ({selectedSubDetail.businessEmail})</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedSubDetail(null)}
-                className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 flex items-center justify-center transition-colors cursor-pointer"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
             {/* Modal Content */}
-            <div className="p-5 space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-900 rounded-xl border border-slate-100 dark:border-zinc-800">
+            <div className="p-4 sm:p-5 space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 dark:bg-zinc-900/70 rounded-2xl border border-slate-100 dark:border-zinc-800/80">
                 <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Plan Name</span>
-                  <span className="font-extrabold text-slate-900 dark:text-white text-sm uppercase">
+                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Plan Name</span>
+                  <span className="font-extrabold text-slate-900 dark:text-white text-sm uppercase block mt-1">
                     {selectedSubDetail.subscription.plan}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 dark:text-zinc-500 font-medium block text-[10px] uppercase">Subscription Status</span>
-                  <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <span className="text-slate-400 dark:text-zinc-500 font-semibold block text-[10px] uppercase tracking-wider">Subscription Status</span>
+                  <span className={`inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase ${
                     selectedSubDetail.subscription.status === 'active'
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300'
                   }`}>
                     {selectedSubDetail.subscription.status}
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">Billing Cycle &amp; Amount:</span>
+              <div className="space-y-2.5 bg-slate-50/50 dark:bg-zinc-900/40 p-3.5 rounded-2xl border border-slate-100 dark:border-zinc-800/60">
+                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
+                  <span className="text-slate-500 dark:text-zinc-400 font-medium">Billing Cycle &amp; Amount:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {selectedSubDetail.subscription.billingCycle} • ₹{selectedSubDetail.subscription.amountPaid?.toLocaleString()}
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">Expiration Date:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {selectedSubDetail.subscription.endDate ? new Date(selectedSubDetail.subscription.endDate).toLocaleDateString() : 'N/A'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">User Quota Usage:</span>
+                <div className="flex justify-between items-center py-0.5 border-b border-slate-200/50 dark:border-zinc-800/60">
+                  <span className="text-slate-500 dark:text-zinc-400 font-medium">User Seat Allocation:</span>
                   <span className="font-semibold text-slate-900 dark:text-white">
                     {selectedSubDetail.subscription.limits?.currentUsers} / {selectedSubDetail.subscription.limits?.maxUsers} Users
                   </span>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-zinc-800">
-                  <span className="text-slate-500 dark:text-zinc-400">AI Credit Usage:</span>
-                  <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <div className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-500 dark:text-zinc-400 font-medium">AI Credit Usage:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
                     {selectedSubDetail.subscription.limits?.currentAiUsage?.toLocaleString()} / {selectedSubDetail.subscription.limits?.maxAiLimit?.toLocaleString()} Credits
                   </span>
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => setSelectedSubDetail(null)}>
+              <div className="pt-2 flex justify-end gap-2.5">
+                <Button variant="outline" size="sm" onClick={() => setSelectedSubDetail(null)} className="rounded-xl px-4">
                   Close
                 </Button>
-                <Button variant="primary" size="sm" onClick={() => { handleOpenEdit(selectedSubDetail); setSelectedSubDetail(null); }}>
+                <Button variant="primary" size="sm" onClick={() => { handleOpenEdit(selectedSubDetail); setSelectedSubDetail(null); }} className="rounded-xl px-4">
                   Edit Subscription
                 </Button>
               </div>
