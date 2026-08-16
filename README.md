@@ -21,7 +21,6 @@
 - [🛠️ Tech Stack](#️-tech-stack)
 - [📂 Project Directory Structure](#-project-directory-structure)
 - [⚡ Getting Started](#-getting-started)
-- [🔐 Environment Variables Setup](#-environment-variables-setup)
 - [🚀 Deployment Guide](#-deployment-guide)
 - [📄 License](#-license)
 
@@ -176,69 +175,19 @@ AI_CRM_Industry_Level_Project_Roadmap/
    cd ../server && npm install
    ```
 
-3. **Configure Environment Variables**:
-   Create a `.env` file in the `server` directory and a `.env` file in the `client` directory (see configuration guide below).
-
-4. **Seed Database (Optional)**:
+3. **Seed Database (Optional)**:
    ```bash
    cd server
    npm run seed
    ```
 
-5. **Run the Development Server**:
+4. **Run the Development Server**:
    ```bash
    # Run frontend and backend concurrently from the root folder:
    npm run dev
    ```
    - **Client Application**: Runs at `http://localhost:5173`
    - **Backend API**: Runs at `http://localhost:5000`
-
----
-
-## 🔐 Environment Variables Setup
-
-### Server (`server/.env`)
-```env
-PORT=5000
-NODE_ENV=development
-
-# Database
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/ai_crm?retryWrites=true&w=majority
-
-# JWT Authentication
-JWT_SECRET=your_super_secret_jwt_access_key_12345
-JWT_EXPIRES_IN=15m
-JWT_REFRESH_SECRET=your_super_secret_jwt_refresh_key_67890
-JWT_REFRESH_EXPIRES_IN=7d
-
-# Frontend Origin
-CLIENT_URL=http://localhost:5173
-
-# Groq AI Service
-GROQ_API_KEY=gsk_your_groq_api_key_here
-
-# Razorpay Payment Gateway
-RAZORPAY_KEY_ID=rzp_test_your_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_secret_key
-
-# Google OAuth
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# SMTP Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_email_app_password
-EMAIL_FROM="AI CRM Platform <noreply@aicrm.com>"
-```
-
-### Client (`client/.env`)
-```env
-VITE_API_BASE_URL=http://localhost:5000/api
-VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-VITE_RAZORPAY_KEY_ID=rzp_test_your_key_id
-```
 
 ---
 
@@ -250,13 +199,9 @@ VITE_RAZORPAY_KEY_ID=rzp_test_your_key_id
    - Push your repository to GitHub.
    - Import the project into **Vercel**.
    - Set the Root Directory to `client`.
-   - Add Environment Variables:
-     - `VITE_API_BASE_URL` = `https://your-backend-api.vercel.app/api` or custom server URL.
-     - `VITE_GOOGLE_CLIENT_ID`
-     - `VITE_RAZORPAY_KEY_ID`
 
 2. **Server Deployment**:
-   - Set Environment Variables in your backend server dashboard (`MONGODB_URI`, `JWT_SECRET`, `GROQ_API_KEY`, `RAZORPAY_KEY_SECRET`, `CLIENT_URL`).
+   - Deploy backend to Vercel or custom server provider.
 
 ---
 
