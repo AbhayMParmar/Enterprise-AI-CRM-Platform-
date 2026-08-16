@@ -55,7 +55,8 @@ export const AiAssistant = () => {
   const { success, error } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>('copilot');
 
-  const isExpired = user?.subscription?.status === 'expired' || user?.subscription?.aiAccess === false;
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'SuperAdmin';
+  const isExpired = !isSuperAdmin && (user?.subscription?.status === 'expired' || user?.subscription?.aiAccess === false);
 
   const DEFAULT_INITIAL_MSG: Msg = {
     role: 'assistant',

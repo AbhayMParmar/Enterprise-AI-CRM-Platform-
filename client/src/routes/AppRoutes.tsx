@@ -128,6 +128,8 @@ const RoleGuard = ({ allowedRoles }: RoleGuardProps) => {
   if (!user) return <Navigate to="/login" replace />;
 
   const userRoleNorm = normalizeRole(user.role);
+  if (userRoleNorm === 'SUPER_ADMIN') return <Outlet />;
+
   const allowedNorm = allowedRoles.map(normalizeRole);
 
   return allowedNorm.includes(userRoleNorm) ? <Outlet /> : <Navigate to="/unauthorized" replace />;

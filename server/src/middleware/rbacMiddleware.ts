@@ -18,6 +18,13 @@ export const authorize = (allowedRoles: (UserRole | string)[]) => {
     }
 
     const userRoleNormalized = normalizeRole(req.user.role);
+
+    // Super Admin has master write access and full bypass to all endpoints and features
+    if (userRoleNormalized === 'SUPER_ADMIN') {
+      next();
+      return;
+    }
+
     const normalizedAllowedRoles = allowedRoles.map((r) => normalizeRole(r));
 
     if (!normalizedAllowedRoles.includes(userRoleNormalized)) {

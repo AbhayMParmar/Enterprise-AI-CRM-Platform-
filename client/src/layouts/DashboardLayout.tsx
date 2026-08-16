@@ -70,10 +70,11 @@ export const DashboardLayout = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Filter nav items by current user's role
+  // Filter nav items by current user's role (SUPER_ADMIN sees all items)
   const navItems = useMemo(() => {
     if (!user) return NAV_MANIFEST.filter(item => !item.roles);
     const userRoleNorm = normalizeRole(user.role);
+    if (userRoleNorm === 'SUPER_ADMIN') return NAV_MANIFEST;
     return NAV_MANIFEST.filter(item => {
       if (!item.roles) return true;
       const normalizedAllowed = item.roles.map(normalizeRole);

@@ -205,6 +205,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       const refreshToken = await TokenService.generateRefreshToken(userId);
       TokenService.setRefreshTokenCookie(res, refreshToken);
 
+      const subStatus = SubscriptionService.getSubscriptionStatus(user);
+
       res.status(200).json({
         success: true,
         message: 'Login successful',
@@ -216,6 +218,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           role: 'SUPER_ADMIN',
           avatar: user.avatar || '',
           accountStatus: 'ACTIVE',
+          subscription: subStatus,
         },
       });
       return;

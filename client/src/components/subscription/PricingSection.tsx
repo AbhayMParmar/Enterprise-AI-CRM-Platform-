@@ -329,14 +329,16 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {plans.map((plan: any, index: number) => {
+              const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'SuperAdmin';
               const isCurrentPlan =
-                isAuthenticated &&
+                (isSuperAdmin && (plan.slug === 'enterprise' || plan.id === 'enterprise' || plan.id === 'premium')) ||
+                (isAuthenticated &&
                 (user?.subscription?.plan === plan.id ||
                   user?.subscription?.plan === plan.slug ||
                   (plan.slug === 'starter' && user?.subscription?.plan === 'basic') ||
                   (plan.slug === 'professional' && user?.subscription?.plan === 'medium') ||
                   (plan.slug === 'enterprise' && user?.subscription?.plan === 'premium')) &&
-                (user?.subscription?.status === 'active' || user?.subscription?.status === 'trial');
+                (user?.subscription?.status === 'active' || user?.subscription?.status === 'trial'));
 
               return (
                 <motion.div
@@ -396,9 +398,9 @@ export const PricingSection: React.FC<PricingSectionProps> = ({
                     {isCurrentPlan ? (
                       <button
                         disabled
-                        className="w-full py-3.5 px-5 rounded-full font-bold text-sm bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700 cursor-not-allowed text-center flex items-center justify-center gap-2"
+                        className="w-full py-3.5 px-5 rounded-full font-bold text-sm bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 cursor-not-allowed text-center flex items-center justify-center gap-2"
                       >
-                        <Check className="w-4 h-4 text-emerald-600" /> Current Plan
+                        <Check className="w-4 h-4 text-emerald-600" /> {isSuperAdmin ? 'Super Admin Active' : 'Current Plan'}
                       </button>
                     ) : (
                       <button

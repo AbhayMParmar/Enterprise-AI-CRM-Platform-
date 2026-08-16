@@ -62,6 +62,19 @@ export class SubscriptionService {
    */
   public static getSubscriptionStatus(user: IUser): SubscriptionStatusResult {
     const now = new Date();
+    const roleNorm = (user.role || '').toString().toUpperCase();
+
+    // Super Admin has lifetime Unlimited Premium Plan access across all features & tools
+    if (roleNorm === 'SUPER_ADMIN' || roleNorm === 'SUPERADMIN' || (user as any).isSuperAdmin) {
+      return {
+        plan: 'premium',
+        status: 'active',
+        daysRemaining: 99999,
+        aiAccess: true,
+        message: 'Super Admin - Lifetime Premium Unlimited Access',
+      };
+    }
+
     const sub = (user.subscription || {}) as any;
 
     const plan = sub.plan || 'trial';
